@@ -1,0 +1,35 @@
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: educapp_db
+    environment:
+      MYSQL_ROOT_PASSWORD: "1234"
+      MYSQL_DATABASE: educapp
+    ports:
+      - "3307:3306"
+    networks:
+      - red_privada
+    volumes:
+      - educapp_mysql_data:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: educapp_phpmyadmin
+    restart: always
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+    ports:
+      - "8081:80"
+    networks:
+      - red_privada
+    depends_on:
+      - db
+
+volumes:
+  educapp_mysql_data:
+
+networks:
+  red_privada:
+    driver: bridge
