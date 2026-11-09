@@ -9,13 +9,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('estudiante', function (Blueprint $table) {
-            $table->integer('Id_Estudiante')->primary();
+            $table->increments('Id_Estudiante');
 
-            $table->integer('Id_usuario')->nullable();
+            $table->unsignedInteger('Id_usuario')->nullable();
 
-            $table->integer('Id_acudiente')->nullable();
+            $table->unsignedInteger('Id_acudiente')->nullable();
 
-            $table->integer('Id_Curso')->nullable();
+            $table->unsignedInteger('Id_Curso')->nullable();
 
             $table->foreign('Id_usuario')
                 ->references('Id_usuario')

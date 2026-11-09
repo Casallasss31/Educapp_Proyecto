@@ -17,9 +17,9 @@ return new class extends Migration
 
             $table->string('Observacion', 150)->nullable();
 
-            $table->integer('Id_materia')->nullable();
+            $table->unsignedInteger('Id_materia')->nullable();
 
-            $table->integer('Id_estudiante')->nullable();
+            $table->unsignedInteger('Id_estudiante')->nullable();
 
             $table->foreign('Id_materia')
                 ->references('Id_Materia')

@@ -17,9 +17,9 @@ return new class extends Migration
 
             $table->time('Horario_final')->nullable();
 
-            $table->integer('Id_curso')->nullable();
+            $table->unsignedInteger('Id_curso')->nullable();
 
-            $table->integer('Id_materia')->nullable();
+            $table->unsignedInteger('Id_materia')->nullable();
 
             $table->foreign('Id_curso')
                 ->references('Id_Curso')

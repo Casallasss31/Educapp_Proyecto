@@ -15,9 +15,9 @@ return new class extends Migration
 
             $table->string('Nombre_Certificado', 150)->nullable();
 
-            $table->integer('Id_Tipo_Certificado')->nullable();
+            $table->unsignedInteger('Id_Tipo_Certificado')->nullable();
 
-            $table->integer('Id_estudiante')->nullable();
+            $table->unsignedInteger('Id_estudiante')->nullable();
 
             $table->foreign('Id_Tipo_Certificado')
                 ->references('Id_Tipo_Certificado')

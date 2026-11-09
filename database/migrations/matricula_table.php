@@ -13,7 +13,7 @@ return new class extends Migration
 
             $table->date('Fecha_Matricula')->nullable();
 
-            $table->integer('Id_estudiante')->nullable();
+            $table->unsignedInteger('Id_estudiante')->nullable();
 
             $table->foreign('Id_estudiante')
                 ->references('Id_Estudiante')

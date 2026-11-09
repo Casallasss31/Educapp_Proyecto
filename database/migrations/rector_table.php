@@ -8,23 +8,29 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('acudiente', function (Blueprint $table) {
-            $table->integer('Id_Acudiente')->primary();
+        Schema::create('rector', function (Blueprint $table) {
+            $table->increments('Id_Rector');
 
             $table->integer('Numero_Telefono')->nullable();
 
             $table->string('Correo', 150)->nullable();
 
-            $table->integer('Id_usuario')->nullable();
+            $table->unsignedInteger('Id_usuario')->nullable();
+
+            $table->unsignedInteger('Id_profesion')->nullable();
 
             $table->foreign('Id_usuario')
                 ->references('Id_usuario')
                 ->on('usuarios');
+
+            $table->foreign('Id_profesion')
+                ->references('Id_Profesion')
+                ->on('profesion');
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('acudiente');
+        Schema::dropIfExists('rector');
     }
 };

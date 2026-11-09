@@ -23,14 +23,16 @@ return new class extends Migration
 
             $table->enum('Genero', ['Masculino', 'Femenino'])->nullable();
 
-            $table->integer('Id_Rol')->nullable();
+            // Claves foráneas
+            $table->unsignedInteger('Id_Rol')->nullable();
 
-            $table->integer('Id_EPS')->nullable();
+            $table->unsignedInteger('Id_EPS')->nullable();
 
-            $table->integer('Id_Grupo_Sanguineo')->nullable();
+            $table->unsignedInteger('Id_Grupo_Sanguineo')->nullable();
 
-            $table->integer('Id_Barrio')->nullable();
+            $table->unsignedInteger('Id_Barrio')->nullable();
 
+            // Relaciones
             $table->foreign('Id_Rol')
                 ->references('Id_Rol')
                 ->on('rol');

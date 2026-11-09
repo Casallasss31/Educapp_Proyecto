@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('rol', function (Blueprint $table) {
-            $table->increments('Id_Rol');
+            $table->unsignedInteger('Id_Rol')->nullable();
 
             $table->enum('Tipo', [
                 'RECTOR',

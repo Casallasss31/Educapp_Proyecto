@@ -13,9 +13,9 @@ return new class extends Migration
 
             $table->string('Nombre_Materia', 150)->nullable();
 
-            $table->integer('Id_area')->nullable();
+            $table->unsignedInteger('Id_area')->nullable();
 
-            $table->integer('Id_nota')->nullable();
+            $table->unsignedInteger('Id_nota')->nullable();
 
             $table->foreign('Id_area')
                 ->references('Id_Area')

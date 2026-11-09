@@ -8,16 +8,16 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('rector', function (Blueprint $table) {
-            $table->integer('Id_Rector')->primary();
+        Schema::create('docente', function (Blueprint $table) {
+            $table->increments('Id_Docente');
 
             $table->integer('Numero_Telefono')->nullable();
 
             $table->string('Correo', 150)->nullable();
 
-            $table->integer('Id_usuario')->nullable();
+            $table->unsignedInteger('Id_usuario')->nullable();
 
-            $table->integer('Id_profesion')->nullable();
+            $table->unsignedInteger('Id_profesion')->nullable();
 
             $table->foreign('Id_usuario')
                 ->references('Id_usuario')
@@ -31,6 +31,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('rector');
+        Schema::dropIfExists('docente');
     }
 };
