@@ -9,16 +9,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('rol', function (Blueprint $table) {
-            $table->unsignedInteger('Id_Rol')->nullable();
+    $table->increments('Id_Rol');
 
-            $table->enum('Tipo', [
-                'RECTOR',
-                ' ASISTENTE ADMINISTRATIVO',
-                'ESTUDIANTE',
-                'ACUDIENTE',
-                'DOCENTE'
-            ]);
-        });
+    $table->enum('Tipo', [
+        'RECTOR',
+        ' ASISTENTE ADMINISTRATIVO',
+        'ESTUDIANTE',
+        'ACUDIENTE',
+        'DOCENTE'
+    ])->nullable();
+    });
     }
 
     public function down(): void
