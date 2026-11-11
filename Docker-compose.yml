@@ -1,56 +1,56 @@
-
 services:
   app:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: educapp_app
+    container_name: educapp_laravel_app
     working_dir: /var/www/html
     volumes:
       - .:/var/www/html
+    environment:
+      DB_CONNECTION: pgsql
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: educapp
+      DB_USERNAME: educapp
+      DB_PASSWORD: 1234
     ports:
       - "8000:8000"
-    environment:
-      DB_CONNECTION: mysql
-      DB_HOST: db
-      DB_PORT: 3306
-      DB_DATABASE: educapp
-      DB_USERNAME: root
-      DB_PASSWORD: "1234"
     depends_on:
       - db
+    command: sh -c "composer install && php artisan serve --host=0.0.0.0 --port=8000"
     networks:
       - red_privada
-    command: sh -c "composer install && php artisan serve --host=0.0.0.0 --port=8000"
 
   db:
-    image: mysql:8.0
-    container_name: educapp_db
-    restart: always
+    image: postgres:15-alpine
+    container_name: postgres_container
     environment:
-      MYSQL_ROOT_PASSWORD: "1234"
-      MYSQL_DATABASE: educapp
+      POSTGRES_DB: educapp
+      POSTGRES_USER: educapp
+      POSTGRES_PASSWORD: 1234
     ports:
-      - "3307:3306"
+      - "5432:5432"
     networks:
       - red_privada
     volumes:
-      - educapp_mysql_data:/var/lib/mysql
+      - pgdata_educapp:/var/lib/postgresql/data
 
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: educapp_pgadmin_container
-    restart: always
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: "1234"
+      PGADMIN_DEFAULT_PASSWORD: 1234
     ports:
       - "5050:80"
+    depends_on:
+      - db
     networks:
       - red_privada
 
 volumes:
-  educapp_mysql_data:
+  pgdata_educapp:
 
 networks:
   red_privada:
