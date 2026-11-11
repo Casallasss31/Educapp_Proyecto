@@ -1,6 +1,9 @@
+
 services:
   app:
-    image: educapp-php
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: educapp_app
     working_dir: /var/www/html
     volumes:
@@ -40,7 +43,6 @@ services:
     restart: always
     environment:
       PMA_HOST: db
-      PMA_PORT: 3306
     ports:
       - "8081:80"
     networks:
