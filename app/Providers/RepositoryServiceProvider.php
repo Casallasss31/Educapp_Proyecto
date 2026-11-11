@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 
 // Interfaces
 use App\Interfaces\UsuarioInterface;
+use App\Interfaces\DetalleBoletinInterface;
 use App\Interfaces\RolInterface;
 use App\Interfaces\EPSInterface;
 use App\Interfaces\GrupoSanguineoInterface;
@@ -30,6 +31,7 @@ use App\Interfaces\HorarioAcademicoInterface;
 
 // Repositories
 use App\Repositories\UsuarioRepository;
+use App\Repositories\DetalleBoletinRepository;
 use App\Repositories\RolRepository;
 use App\Repositories\EPSRepository;
 use App\Repositories\GrupoSanguineoRepository;
@@ -78,6 +80,7 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(CertificadoInterface::class, CertificadoRepository::class);
         $this->app->bind(MatriculaInterface::class, MatriculaRepository::class);
         $this->app->bind(HorarioAcademicoInterface::class, HorarioAcademicoRepository::class);
+        $this->app->bind(DetalleBoletinInterface::class, DetalleBoletinRepository::class);
     }
 
     public function boot(): void

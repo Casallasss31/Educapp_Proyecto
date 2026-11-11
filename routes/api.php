@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\UsuarioController;
+use App\Http\Controllers\DetalleBoletinController;
 use App\Http\Controllers\RolController;
 use App\Http\Controllers\EPSController;
 use App\Http\Controllers\GrupoSanguineoController;
@@ -52,6 +53,7 @@ Route::apiResource('areas', AreaController::class);
 Route::apiResource('notas', NotaController::class);
 Route::apiResource('materias', MateriaController::class);
 Route::apiResource('boletines', BoletinController::class);
+Route::apiResource('detalles-boletin', DetalleBoletinController::class);
 Route::apiResource('tipos-certificado', TipoCertificadoController::class);
 Route::apiResource('certificados', CertificadoController::class);
 Route::apiResource('matriculas', MatriculaController::class);
