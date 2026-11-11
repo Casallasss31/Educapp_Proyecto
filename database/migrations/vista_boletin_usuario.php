@@ -12,17 +12,17 @@ return new class extends Migration
         DB::statement("
             CREATE OR REPLACE VIEW vista_boletin_usuario AS
             SELECT
-                b.id            AS boletin_id,
-                u.id            AS usuario_id,
-                u.nombre          AS usuario,
-                r.nombre       AS rol,
-                c.nombre        AS curso,
+                b.id_boletin           AS boletin_id,
+                u.id_usuario           AS usuario_id,
+                u.nombres              AS usuario,
+                r.nombre               AS rol,
+                c.nombre               AS curso,
                 b.periodo,
                 b.nota
             FROM boletin
-            INNER JOIN usuarios u ON u.id = b.usuario_id
-            LEFT JOIN  roles  r ON r.id = u.rol_id
-            LEFT JOIN  cursos c ON c.id = b.curso_id
+            INNER JOIN usuarios u ON u.id_usuario = b.usuario_id
+            LEFT JOIN  roles  r ON r.id_rol = u.rol
+            LEFT JOIN  cursos c ON c.id_curso = b.curso_id
         ");
     }
 
