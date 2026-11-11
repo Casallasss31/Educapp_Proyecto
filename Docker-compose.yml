@@ -37,18 +37,17 @@ services:
     volumes:
       - educapp_mysql_data:/var/lib/mysql
 
-    pgadmin:
+  pgadmin:
     image: dpage/pgadmin4:latest
     container_name: educapp_pgadmin_container
+    restart: always
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: 1234
+      PGADMIN_DEFAULT_PASSWORD: "1234"
     ports:
       - "5050:80"
-    depends_on:
-      - db
     networks:
-      - red_api
+      - red_privada
 
 volumes:
   educapp_mysql_data:
