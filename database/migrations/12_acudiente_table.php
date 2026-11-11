@@ -11,11 +11,7 @@ return new class extends Migration
         Schema::create('acudiente', function (Blueprint $table) {
 
             $table->increments('Id_Acudiente');
-
-            $table->integer('Numero_Telefono')->nullable();
-
-            $table->string('Correo', 150)->nullable();
-
+            
             $table->unsignedInteger('Id_usuario')->nullable();
 
             $table->foreign('Id_usuario')

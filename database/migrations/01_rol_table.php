@@ -13,7 +13,7 @@ return new class extends Migration
 
     $table->enum('Tipo', [
         'RECTOR',
-        ' ASISTENTE ADMINISTRATIVO',
+        'ASISTENTE ADMINISTRATIVO',
         'ESTUDIANTE',
         'ACUDIENTE',
         'DOCENTE'

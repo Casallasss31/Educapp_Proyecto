@@ -23,6 +23,10 @@ return new class extends Migration
 
             $table->enum('Genero', ['Masculino', 'Femenino'])->nullable();
 
+            $table->integer('Numero_Telefono')->nullable();
+
+            $table->string('Correo', 150)->nullable();
+
             // Claves foráneas
             $table->unsignedInteger('Id_Rol')->nullable();
 

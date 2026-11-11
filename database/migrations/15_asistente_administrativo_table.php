@@ -11,9 +11,6 @@ return new class extends Migration
         Schema::create('asistente_administrativo', function (Blueprint $table) {
             $table->increments('Id_Asistente_Administrativo');
 
-            $table->integer('Numero_Telefono')->nullable();
-
-            $table->string('Correo', 150)->nullable();
 
             $table->unsignedInteger('Id_usuario')->nullable();
 

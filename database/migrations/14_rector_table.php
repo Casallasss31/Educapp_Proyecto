@@ -11,10 +11,6 @@ return new class extends Migration
         Schema::create('rector', function (Blueprint $table) {
             $table->increments('Id_Rector');
 
-            $table->integer('Numero_Telefono')->nullable();
-
-            $table->string('Correo', 150)->nullable();
-
             $table->unsignedInteger('Id_usuario')->nullable();
 
             $table->unsignedInteger('Id_profesion')->nullable();
