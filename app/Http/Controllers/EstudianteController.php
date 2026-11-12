@@ -10,8 +10,9 @@ class EstudianteController extends Controller
 {
     protected EstudianteService $estudianteService;
 
-    public function __construct(EstudianteService $estudianteService)
-    {
+    public function __construct(
+        EstudianteService $estudianteService
+    ) {
         $this->estudianteService = $estudianteService;
     }
 
@@ -27,7 +28,9 @@ class EstudianteController extends Controller
 
     public function show(int $id): JsonResponse
     {
-        $estudiante = $this->estudianteService->findById($id);
+        $estudiante = $this->estudianteService->findById(
+            $id
+        );
 
         if (!$estudiante) {
             return response()->json([
@@ -41,8 +44,9 @@ class EstudianteController extends Controller
         ], 200);
     }
 
-    public function store(EstudianteRequest $request): JsonResponse
-    {
+    public function store(
+        EstudianteRequest $request
+    ): JsonResponse {
         $estudiante = $this->estudianteService->create(
             $request->validated()
         );
@@ -53,8 +57,10 @@ class EstudianteController extends Controller
         ], 201);
     }
 
-    public function update(EstudianteRequest $request, int $id): JsonResponse
-    {
+    public function update(
+        EstudianteRequest $request,
+        int $id
+    ): JsonResponse {
         $estudiante = $this->estudianteService->update(
             $id,
             $request->validated()
@@ -74,7 +80,9 @@ class EstudianteController extends Controller
 
     public function destroy(int $id): JsonResponse
     {
-        $eliminado = $this->estudianteService->delete($id);
+        $eliminado = $this->estudianteService->delete(
+            $id
+        );
 
         if (!$eliminado) {
             return response()->json([

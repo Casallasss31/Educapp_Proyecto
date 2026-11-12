@@ -22,12 +22,10 @@ class Matricula extends Model
         'Id_estudiante'
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'Fecha_Matricula' => 'date'
-        ];
-    }
+    protected $casts = [
+        'Fecha_Matricula' => 'date:Y-m-d',
+        'Id_estudiante' => 'integer'
+    ];
 
     public function estudiante(): BelongsTo
     {

@@ -10,21 +10,34 @@ class MateriaRepository implements MateriaInterface
 {
     public function getAll(): Collection
     {
-        return Materia::all();
+        return Materia::with([
+            'area',
+            'nota'
+        ])->get();
     }
 
     public function findById(int $id): ?Materia
     {
-        return Materia::find($id);
+        return Materia::with([
+            'area',
+            'nota'
+        ])->find($id);
     }
 
     public function create(array $data): Materia
     {
-        return Materia::create($data);
+        $materia = Materia::create($data);
+
+        return $materia->load([
+            'area',
+            'nota'
+        ]);
     }
 
-    public function update(int $id, array $data): ?Materia
-    {
+    public function update(
+        int $id,
+        array $data
+    ): ?Materia {
         $materia = Materia::find($id);
 
         if (!$materia) {
@@ -33,7 +46,10 @@ class MateriaRepository implements MateriaInterface
 
         $materia->update($data);
 
-        return $materia;
+        return $materia->refresh()->load([
+            'area',
+            'nota'
+        ]);
     }
 
     public function delete(int $id): bool
@@ -45,5 +61,35 @@ class MateriaRepository implements MateriaInterface
         }
 
         return (bool) $materia->delete();
+    }
+
+    public function existsByNameAndArea(
+        string $nombre,
+        int $idArea,
+        ?int $excludeId = null
+    ): bool {
+        return Materia::whereRaw(
+            'LOWER(TRIM(Nombre_Materia)) = ?',
+            [mb_strtolower(trim($nombre))]
+        )
+            ->where('Id_area', $idArea)
+            ->when(
+                $excludeId !== null,
+                function ($query) use ($excludeId) {
+                    $query->where(
+                        'Id_Materia',
+                        '!=',
+                        $excludeId
+                    );
+                }
+            )
+            ->exists();
+    }
+
+    public function hasHorarios(int $id): bool
+    {
+        return Materia::whereKey($id)
+            ->whereHas('horarios')
+            ->exists();
     }
 }

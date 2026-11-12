@@ -13,7 +13,22 @@ interface HorarioAcademicoInterface
 
     public function create(array $data): HorarioAcademico;
 
-    public function update(int $id, array $data): ?HorarioAcademico;
+    public function update(
+        int $id,
+        array $data
+    ): ?HorarioAcademico;
 
     public function delete(int $id): bool;
+
+    public function existsOverlap(
+        int $idCurso,
+        string $dia,
+        string $horaInicio,
+        string $horaFinal,
+        ?int $excludeId = null
+    ): bool;
+
+    public function getByCurso(
+        int $idCurso
+    ): Collection;
 }

@@ -23,6 +23,12 @@ class DetalleBoletin extends Model
         'Id_boletin'
     ];
 
+    protected $casts = [
+        'Fallas' => 'integer',
+        'Id_docentes' => 'integer',
+        'Id_boletin' => 'integer'
+    ];
+
     public function docente(): BelongsTo
     {
         return $this->belongsTo(

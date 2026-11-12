@@ -19,9 +19,17 @@ class Curso extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'Id_Curso',
         'Año',
         'Id_grado',
         'Id_docente'
+    ];
+
+    protected $casts = [
+        'Id_Curso' => 'integer',
+        'Año' => 'integer',
+        'Id_grado' => 'integer',
+        'Id_docente' => 'integer'
     ];
 
     public function grado(): BelongsTo
@@ -47,15 +55,6 @@ class Curso extends Model
         return $this->hasMany(
             Estudiante::class,
             'Id_Curso',
-            'Id_Curso'
-        );
-    }
-
-    public function horarios(): HasMany
-    {
-        return $this->hasMany(
-            HorarioAcademico::class,
-            'Id_curso',
             'Id_Curso'
         );
     }

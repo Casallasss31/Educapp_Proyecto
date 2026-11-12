@@ -18,8 +18,7 @@ class Rector extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'Numero_Telefono',
-        'Correo',
+        'Id_Rector',
         'Id_usuario',
         'Id_profesion'
     ];

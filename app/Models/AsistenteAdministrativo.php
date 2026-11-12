@@ -18,8 +18,7 @@ class AsistenteAdministrativo extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'Numero_Telefono',
-        'Correo',
+        'Id_Asistente_Administrativo',
         'Id_usuario',
         'Id_profesion'
     ];

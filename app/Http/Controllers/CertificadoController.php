@@ -10,8 +10,9 @@ class CertificadoController extends Controller
 {
     protected CertificadoService $certificadoService;
 
-    public function __construct(CertificadoService $certificadoService)
-    {
+    public function __construct(
+        CertificadoService $certificadoService
+    ) {
         $this->certificadoService = $certificadoService;
     }
 
@@ -27,7 +28,9 @@ class CertificadoController extends Controller
 
     public function show(int $id): JsonResponse
     {
-        $certificado = $this->certificadoService->findById($id);
+        $certificado = $this->certificadoService->findById(
+            $id
+        );
 
         if (!$certificado) {
             return response()->json([
@@ -41,8 +44,9 @@ class CertificadoController extends Controller
         ], 200);
     }
 
-    public function store(CertificadoRequest $request): JsonResponse
-    {
+    public function store(
+        CertificadoRequest $request
+    ): JsonResponse {
         $certificado = $this->certificadoService->create(
             $request->validated()
         );
@@ -53,8 +57,10 @@ class CertificadoController extends Controller
         ], 201);
     }
 
-    public function update(CertificadoRequest $request, int $id): JsonResponse
-    {
+    public function update(
+        CertificadoRequest $request,
+        int $id
+    ): JsonResponse {
         $certificado = $this->certificadoService->update(
             $id,
             $request->validated()
@@ -74,7 +80,9 @@ class CertificadoController extends Controller
 
     public function destroy(int $id): JsonResponse
     {
-        $eliminado = $this->certificadoService->delete($id);
+        $eliminado = $this->certificadoService->delete(
+            $id
+        );
 
         if (!$eliminado) {
             return response()->json([

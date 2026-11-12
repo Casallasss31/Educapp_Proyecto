@@ -10,21 +10,39 @@ class MatriculaRepository implements MatriculaInterface
 {
     public function getAll(): Collection
     {
-        return Matricula::all();
+        return Matricula::with([
+            'estudiante.usuario',
+            'estudiante.curso',
+            'estudiante.acudiente'
+        ])
+            ->orderByDesc('Fecha_Matricula')
+            ->get();
     }
 
     public function findById(int $id): ?Matricula
     {
-        return Matricula::find($id);
+        return Matricula::with([
+            'estudiante.usuario',
+            'estudiante.curso',
+            'estudiante.acudiente'
+        ])->find($id);
     }
 
     public function create(array $data): Matricula
     {
-        return Matricula::create($data);
+        $matricula = Matricula::create($data);
+
+        return $matricula->load([
+            'estudiante.usuario',
+            'estudiante.curso',
+            'estudiante.acudiente'
+        ]);
     }
 
-    public function update(int $id, array $data): ?Matricula
-    {
+    public function update(
+        int $id,
+        array $data
+    ): ?Matricula {
         $matricula = Matricula::find($id);
 
         if (!$matricula) {
@@ -33,7 +51,11 @@ class MatriculaRepository implements MatriculaInterface
 
         $matricula->update($data);
 
-        return $matricula;
+        return $matricula->refresh()->load([
+            'estudiante.usuario',
+            'estudiante.curso',
+            'estudiante.acudiente'
+        ]);
     }
 
     public function delete(int $id): bool
@@ -45,5 +67,40 @@ class MatriculaRepository implements MatriculaInterface
         }
 
         return (bool) $matricula->delete();
+    }
+
+    public function existsByEstudianteAndAnio(
+        int $idEstudiante,
+        int $anio,
+        ?int $excludeId = null
+    ): bool {
+        return Matricula::where(
+            'Id_estudiante',
+            $idEstudiante
+        )
+            ->whereYear('Fecha_Matricula', $anio)
+            ->when(
+                $excludeId !== null,
+                function ($query) use ($excludeId) {
+                    $query->where(
+                        'Id_Matricula',
+                        '!=',
+                        $excludeId
+                    );
+                }
+            )
+            ->exists();
+    }
+
+    public function getByEstudiante(
+        int $idEstudiante
+    ): Collection {
+        return Matricula::with([
+            'estudiante.usuario',
+            'estudiante.curso'
+        ])
+            ->where('Id_estudiante', $idEstudiante)
+            ->orderByDesc('Fecha_Matricula')
+            ->get();
     }
 }

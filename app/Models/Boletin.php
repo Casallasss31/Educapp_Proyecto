@@ -25,12 +25,12 @@ class Boletin extends Model
         'Id_estudiante'
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'Fecha_publicacion' => 'date'
-        ];
-    }
+    protected $casts = [
+        'Fecha_publicacion' => 'date:Y-m-d',
+        'Periodo' => 'string',
+        'Id_materia' => 'integer',
+        'Id_estudiante' => 'integer'
+    ];
 
     public function materia(): BelongsTo
     {

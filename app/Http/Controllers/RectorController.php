@@ -10,8 +10,9 @@ class RectorController extends Controller
 {
     protected RectorService $rectorService;
 
-    public function __construct(RectorService $rectorService)
-    {
+    public function __construct(
+        RectorService $rectorService
+    ) {
         $this->rectorService = $rectorService;
     }
 
@@ -41,8 +42,9 @@ class RectorController extends Controller
         ], 200);
     }
 
-    public function store(RectorRequest $request): JsonResponse
-    {
+    public function store(
+        RectorRequest $request
+    ): JsonResponse {
         $rector = $this->rectorService->create(
             $request->validated()
         );
@@ -53,8 +55,10 @@ class RectorController extends Controller
         ], 201);
     }
 
-    public function update(RectorRequest $request, int $id): JsonResponse
-    {
+    public function update(
+        RectorRequest $request,
+        int $id
+    ): JsonResponse {
         $rector = $this->rectorService->update(
             $id,
             $request->validated()

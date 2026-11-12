@@ -13,7 +13,20 @@ interface CursoInterface
 
     public function create(array $data): Curso;
 
-    public function update(int $id, array $data): ?Curso;
+    public function update(
+        int $id,
+        array $data
+    ): ?Curso;
 
     public function delete(int $id): bool;
+
+    public function existsById(int $id): bool;
+
+    public function existsByGradoAndAnio(
+        int $idGrado,
+        int $anio,
+        ?int $excludeId = null
+    ): bool;
+
+    public function hasEstudiantes(int $id): bool;
 }
