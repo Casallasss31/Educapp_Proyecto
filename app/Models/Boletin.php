@@ -49,4 +49,9 @@ class Boletin extends Model
             'Id_Estudiante'
         );
     }
+
+    public function detalles(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(DetalleBoletin::class, 'Id_boletin', 'Id_Boletin');
+    }
 }
