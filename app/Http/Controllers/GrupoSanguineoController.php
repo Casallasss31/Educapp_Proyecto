@@ -10,8 +10,9 @@ class GrupoSanguineoController extends Controller
 {
     protected GrupoSanguineoService $grupoSanguineoService;
 
-    public function __construct(GrupoSanguineoService $grupoSanguineoService)
-    {
+    public function __construct(
+        GrupoSanguineoService $grupoSanguineoService
+    ) {
         $this->grupoSanguineoService = $grupoSanguineoService;
     }
 
@@ -41,8 +42,9 @@ class GrupoSanguineoController extends Controller
         ], 200);
     }
 
-    public function store(GrupoSanguineoRequest $request): JsonResponse
-    {
+    public function store(
+        GrupoSanguineoRequest $request
+    ): JsonResponse {
         $grupo = $this->grupoSanguineoService->create(
             $request->validated()
         );
@@ -53,8 +55,10 @@ class GrupoSanguineoController extends Controller
         ], 201);
     }
 
-    public function update(GrupoSanguineoRequest $request, int $id): JsonResponse
-    {
+    public function update(
+        GrupoSanguineoRequest $request,
+        int $id
+    ): JsonResponse {
         $grupo = $this->grupoSanguineoService->update(
             $id,
             $request->validated()

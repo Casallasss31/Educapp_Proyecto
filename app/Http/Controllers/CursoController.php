@@ -10,8 +10,9 @@ class CursoController extends Controller
 {
     protected CursoService $cursoService;
 
-    public function __construct(CursoService $cursoService)
-    {
+    public function __construct(
+        CursoService $cursoService
+    ) {
         $this->cursoService = $cursoService;
     }
 
@@ -41,8 +42,9 @@ class CursoController extends Controller
         ], 200);
     }
 
-    public function store(CursoRequest $request): JsonResponse
-    {
+    public function store(
+        CursoRequest $request
+    ): JsonResponse {
         $curso = $this->cursoService->create(
             $request->validated()
         );
@@ -53,8 +55,10 @@ class CursoController extends Controller
         ], 201);
     }
 
-    public function update(CursoRequest $request, int $id): JsonResponse
-    {
+    public function update(
+        CursoRequest $request,
+        int $id
+    ): JsonResponse {
         $curso = $this->cursoService->update(
             $id,
             $request->validated()

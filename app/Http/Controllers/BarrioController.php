@@ -10,8 +10,9 @@ class BarrioController extends Controller
 {
     protected BarrioService $barrioService;
 
-    public function __construct(BarrioService $barrioService)
-    {
+    public function __construct(
+        BarrioService $barrioService
+    ) {
         $this->barrioService = $barrioService;
     }
 
@@ -53,8 +54,10 @@ class BarrioController extends Controller
         ], 201);
     }
 
-    public function update(BarrioRequest $request, int $id): JsonResponse
-    {
+    public function update(
+        BarrioRequest $request,
+        int $id
+    ): JsonResponse {
         $barrio = $this->barrioService->update(
             $id,
             $request->validated()

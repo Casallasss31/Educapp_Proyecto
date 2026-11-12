@@ -10,8 +10,9 @@ class MatriculaController extends Controller
 {
     protected MatriculaService $matriculaService;
 
-    public function __construct(MatriculaService $matriculaService)
-    {
+    public function __construct(
+        MatriculaService $matriculaService
+    ) {
         $this->matriculaService = $matriculaService;
     }
 
@@ -27,7 +28,9 @@ class MatriculaController extends Controller
 
     public function show(int $id): JsonResponse
     {
-        $matricula = $this->matriculaService->findById($id);
+        $matricula = $this->matriculaService->findById(
+            $id
+        );
 
         if (!$matricula) {
             return response()->json([
@@ -41,8 +44,9 @@ class MatriculaController extends Controller
         ], 200);
     }
 
-    public function store(MatriculaRequest $request): JsonResponse
-    {
+    public function store(
+        MatriculaRequest $request
+    ): JsonResponse {
         $matricula = $this->matriculaService->create(
             $request->validated()
         );
@@ -53,8 +57,10 @@ class MatriculaController extends Controller
         ], 201);
     }
 
-    public function update(MatriculaRequest $request, int $id): JsonResponse
-    {
+    public function update(
+        MatriculaRequest $request,
+        int $id
+    ): JsonResponse {
         $matricula = $this->matriculaService->update(
             $id,
             $request->validated()
@@ -74,7 +80,9 @@ class MatriculaController extends Controller
 
     public function destroy(int $id): JsonResponse
     {
-        $eliminado = $this->matriculaService->delete($id);
+        $eliminado = $this->matriculaService->delete(
+            $id
+        );
 
         if (!$eliminado) {
             return response()->json([

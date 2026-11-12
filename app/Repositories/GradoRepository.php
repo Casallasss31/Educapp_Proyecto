@@ -33,7 +33,7 @@ class GradoRepository implements GradoInterface
 
         $grado->update($data);
 
-        return $grado;
+        return $grado->refresh();
     }
 
     public function delete(int $id): bool
@@ -45,5 +45,30 @@ class GradoRepository implements GradoInterface
         }
 
         return (bool) $grado->delete();
+    }
+
+    public function existsByNombre(
+        string $nombre,
+        ?int $excludeId = null
+    ): bool {
+        return Grado::where('Nombre_Grado', $nombre)
+            ->when(
+                $excludeId !== null,
+                function ($query) use ($excludeId) {
+                    $query->where(
+                        'Id_Grado',
+                        '!=',
+                        $excludeId
+                    );
+                }
+            )
+            ->exists();
+    }
+
+    public function hasCursos(int $id): bool
+    {
+        return Grado::whereKey($id)
+            ->whereHas('cursos')
+            ->exists();
     }
 }

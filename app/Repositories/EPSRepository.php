@@ -33,7 +33,7 @@ class EPSRepository implements EPSInterface
 
         $eps->update($data);
 
-        return $eps;
+        return $eps->refresh();
     }
 
     public function delete(int $id): bool
@@ -45,5 +45,23 @@ class EPSRepository implements EPSInterface
         }
 
         return (bool) $eps->delete();
+    }
+
+    public function existsByNombre(
+        string $nombre,
+        ?int $excludeId = null
+    ): bool {
+        return EPS::where('Nombre_Eps', $nombre)
+            ->when($excludeId !== null, function ($query) use ($excludeId) {
+                $query->where('Id_EPS', '!=', $excludeId);
+            })
+            ->exists();
+    }
+
+    public function hasUsuarios(int $id): bool
+    {
+        return EPS::whereKey($id)
+            ->whereHas('usuarios')
+            ->exists();
     }
 }

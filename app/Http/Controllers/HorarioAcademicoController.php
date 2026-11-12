@@ -8,82 +8,102 @@ use Illuminate\Http\JsonResponse;
 
 class HorarioAcademicoController extends Controller
 {
-    protected HorarioAcademicoService $horarioAcademicoService;
+    protected HorarioAcademicoService $horarioService;
 
-    public function __construct(HorarioAcademicoService $horarioAcademicoService)
-    {
-        $this->horarioAcademicoService = $horarioAcademicoService;
+    public function __construct(
+        HorarioAcademicoService $horarioService
+    ) {
+        $this->horarioService = $horarioService;
     }
 
     public function index(): JsonResponse
     {
-        $horarios = $this->horarioAcademicoService->getAll();
+        $horarios = $this->horarioService->getAll();
 
         return response()->json([
-            'mensaje' => 'Horarios académicos obtenidos correctamente.',
+            'mensaje' => 'Horarios obtenidos correctamente.',
             'datos' => $horarios
         ], 200);
     }
 
     public function show(int $id): JsonResponse
     {
-        $horario = $this->horarioAcademicoService->findById($id);
+        $horario = $this->horarioService->findById(
+            $id
+        );
 
         if (!$horario) {
             return response()->json([
-                'mensaje' => 'Horario académico no encontrado.'
+                'mensaje' => 'Horario no encontrado.'
             ], 404);
         }
 
         return response()->json([
-            'mensaje' => 'Horario académico obtenido correctamente.',
+            'mensaje' => 'Horario obtenido correctamente.',
             'datos' => $horario
         ], 200);
     }
 
-    public function store(HorarioAcademicoRequest $request): JsonResponse
-    {
-        $horario = $this->horarioAcademicoService->create(
+    public function store(
+        HorarioAcademicoRequest $request
+    ): JsonResponse {
+        $horario = $this->horarioService->create(
             $request->validated()
         );
 
         return response()->json([
-            'mensaje' => 'Horario académico creado correctamente.',
+            'mensaje' => 'Horario creado correctamente.',
             'datos' => $horario
         ], 201);
     }
 
-    public function update(HorarioAcademicoRequest $request, int $id): JsonResponse
-    {
-        $horario = $this->horarioAcademicoService->update(
+    public function update(
+        HorarioAcademicoRequest $request,
+        int $id
+    ): JsonResponse {
+        $horario = $this->horarioService->update(
             $id,
             $request->validated()
         );
 
         if (!$horario) {
             return response()->json([
-                'mensaje' => 'Horario académico no encontrado.'
+                'mensaje' => 'Horario no encontrado.'
             ], 404);
         }
 
         return response()->json([
-            'mensaje' => 'Horario académico actualizado correctamente.',
+            'mensaje' => 'Horario actualizado correctamente.',
             'datos' => $horario
         ], 200);
     }
 
     public function destroy(int $id): JsonResponse
     {
-        $eliminado = $this->horarioAcademicoService->delete($id);
+        $eliminado = $this->horarioService->delete(
+            $id
+        );
 
         if (!$eliminado) {
             return response()->json([
-                'mensaje' => 'Horario académico no encontrado.'
+                'mensaje' => 'Horario no encontrado.'
             ], 404);
         }
 
         return response()->json([
-            'mensaje' => 'Horario académico eliminado correctamente.'
+            'mensaje' => 'Horario eliminado correctamente.'
+        ], 200);
+    }
+
+    public function porCurso(int $idCurso): JsonResponse
+    {
+        $horarios = $this->horarioService->getByCurso(
+            $idCurso
+        );
+
+        return response()->json([
+            'mensaje' => 'Horarios del curso obtenidos correctamente.',
+            'datos' => $horarios
         ], 200);
     }
 }

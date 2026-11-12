@@ -15,25 +15,17 @@ class Nota extends Model
 
     protected $keyType = 'int';
 
-    public $timestamps = false;
+    public $timestamps = true;
 
     protected $fillable = [
-        'Nombre_Nota',
-        'nota'
+        'Nombre_Nota'
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'nota' => 'decimal:1'
-        ];
-    }
-
-    public function materias(): HasMany
+    public function detallesBoletin(): HasMany
     {
         return $this->hasMany(
-            Materia::class,
-            'Id_nota',
+            DetalleBoletin::class,
+            'Id_Nota',
             'Id_Nota'
         );
     }

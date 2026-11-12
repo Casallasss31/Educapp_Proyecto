@@ -19,6 +19,7 @@ class Estudiante extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'Id_Estudiante',
         'Id_usuario',
         'Id_acudiente',
         'Id_Curso'
@@ -48,24 +49,6 @@ class Estudiante extends Model
             Curso::class,
             'Id_Curso',
             'Id_Curso'
-        );
-    }
-
-    public function boletines(): HasMany
-    {
-        return $this->hasMany(
-            Boletin::class,
-            'Id_estudiante',
-            'Id_Estudiante'
-        );
-    }
-
-    public function certificados(): HasMany
-    {
-        return $this->hasMany(
-            Certificado::class,
-            'Id_estudiante',
-            'Id_Estudiante'
         );
     }
 

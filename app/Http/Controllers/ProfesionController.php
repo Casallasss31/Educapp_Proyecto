@@ -10,8 +10,9 @@ class ProfesionController extends Controller
 {
     protected ProfesionService $profesionService;
 
-    public function __construct(ProfesionService $profesionService)
-    {
+    public function __construct(
+        ProfesionService $profesionService
+    ) {
         $this->profesionService = $profesionService;
     }
 
@@ -41,8 +42,9 @@ class ProfesionController extends Controller
         ], 200);
     }
 
-    public function store(ProfesionRequest $request): JsonResponse
-    {
+    public function store(
+        ProfesionRequest $request
+    ): JsonResponse {
         $profesion = $this->profesionService->create(
             $request->validated()
         );
@@ -53,8 +55,10 @@ class ProfesionController extends Controller
         ], 201);
     }
 
-    public function update(ProfesionRequest $request, int $id): JsonResponse
-    {
+    public function update(
+        ProfesionRequest $request,
+        int $id
+    ): JsonResponse {
         $profesion = $this->profesionService->update(
             $id,
             $request->validated()

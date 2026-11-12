@@ -10,8 +10,9 @@ class MateriaController extends Controller
 {
     protected MateriaService $materiaService;
 
-    public function __construct(MateriaService $materiaService)
-    {
+    public function __construct(
+        MateriaService $materiaService
+    ) {
         $this->materiaService = $materiaService;
     }
 
@@ -41,8 +42,9 @@ class MateriaController extends Controller
         ], 200);
     }
 
-    public function store(MateriaRequest $request): JsonResponse
-    {
+    public function store(
+        MateriaRequest $request
+    ): JsonResponse {
         $materia = $this->materiaService->create(
             $request->validated()
         );
@@ -53,8 +55,10 @@ class MateriaController extends Controller
         ], 201);
     }
 
-    public function update(MateriaRequest $request, int $id): JsonResponse
-    {
+    public function update(
+        MateriaRequest $request,
+        int $id
+    ): JsonResponse {
         $materia = $this->materiaService->update(
             $id,
             $request->validated()
@@ -74,7 +78,9 @@ class MateriaController extends Controller
 
     public function destroy(int $id): JsonResponse
     {
-        $eliminado = $this->materiaService->delete($id);
+        $eliminado = $this->materiaService->delete(
+            $id
+        );
 
         if (!$eliminado) {
             return response()->json([

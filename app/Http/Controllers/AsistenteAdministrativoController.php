@@ -8,16 +8,17 @@ use Illuminate\Http\JsonResponse;
 
 class AsistenteAdministrativoController extends Controller
 {
-    protected AsistenteAdministrativoService $asistenteAdministrativoService;
+    protected AsistenteAdministrativoService $asistenteService;
 
-    public function __construct(AsistenteAdministrativoService $asistenteAdministrativoService)
-    {
-        $this->asistenteAdministrativoService = $asistenteAdministrativoService;
+    public function __construct(
+        AsistenteAdministrativoService $asistenteService
+    ) {
+        $this->asistenteService = $asistenteService;
     }
 
     public function index(): JsonResponse
     {
-        $asistentes = $this->asistenteAdministrativoService->getAll();
+        $asistentes = $this->asistenteService->getAll();
 
         return response()->json([
             'mensaje' => 'Asistentes administrativos obtenidos correctamente.',
@@ -27,7 +28,9 @@ class AsistenteAdministrativoController extends Controller
 
     public function show(int $id): JsonResponse
     {
-        $asistente = $this->asistenteAdministrativoService->findById($id);
+        $asistente = $this->asistenteService->findById(
+            $id
+        );
 
         if (!$asistente) {
             return response()->json([
@@ -41,9 +44,10 @@ class AsistenteAdministrativoController extends Controller
         ], 200);
     }
 
-    public function store(AsistenteAdministrativoRequest $request): JsonResponse
-    {
-        $asistente = $this->asistenteAdministrativoService->create(
+    public function store(
+        AsistenteAdministrativoRequest $request
+    ): JsonResponse {
+        $asistente = $this->asistenteService->create(
             $request->validated()
         );
 
@@ -53,9 +57,11 @@ class AsistenteAdministrativoController extends Controller
         ], 201);
     }
 
-    public function update(AsistenteAdministrativoRequest $request, int $id): JsonResponse
-    {
-        $asistente = $this->asistenteAdministrativoService->update(
+    public function update(
+        AsistenteAdministrativoRequest $request,
+        int $id
+    ): JsonResponse {
+        $asistente = $this->asistenteService->update(
             $id,
             $request->validated()
         );
@@ -74,7 +80,9 @@ class AsistenteAdministrativoController extends Controller
 
     public function destroy(int $id): JsonResponse
     {
-        $eliminado = $this->asistenteAdministrativoService->delete($id);
+        $eliminado = $this->asistenteService->delete(
+            $id
+        );
 
         if (!$eliminado) {
             return response()->json([

@@ -26,7 +26,7 @@ class Area extends Model
     {
         return $this->hasMany(
             Materia::class,
-            'Id_area',
+            'Id_Area',
             'Id_Area'
         );
     }

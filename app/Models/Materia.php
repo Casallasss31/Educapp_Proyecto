@@ -42,15 +42,6 @@ class Materia extends Model
         );
     }
 
-    public function boletines(): HasMany
-    {
-        return $this->hasMany(
-            Boletin::class,
-            'Id_materia',
-            'Id_Materia'
-        );
-    }
-
     public function horarios(): HasMany
     {
         return $this->hasMany(

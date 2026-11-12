@@ -10,8 +10,9 @@ class DocenteController extends Controller
 {
     protected DocenteService $docenteService;
 
-    public function __construct(DocenteService $docenteService)
-    {
+    public function __construct(
+        DocenteService $docenteService
+    ) {
         $this->docenteService = $docenteService;
     }
 
@@ -41,8 +42,9 @@ class DocenteController extends Controller
         ], 200);
     }
 
-    public function store(DocenteRequest $request): JsonResponse
-    {
+    public function store(
+        DocenteRequest $request
+    ): JsonResponse {
         $docente = $this->docenteService->create(
             $request->validated()
         );
@@ -53,8 +55,10 @@ class DocenteController extends Controller
         ], 201);
     }
 
-    public function update(DocenteRequest $request, int $id): JsonResponse
-    {
+    public function update(
+        DocenteRequest $request,
+        int $id
+    ): JsonResponse {
         $docente = $this->docenteService->update(
             $id,
             $request->validated()

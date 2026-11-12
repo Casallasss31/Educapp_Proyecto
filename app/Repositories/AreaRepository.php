@@ -33,7 +33,7 @@ class AreaRepository implements AreaInterface
 
         $area->update($data);
 
-        return $area;
+        return $area->refresh();
     }
 
     public function delete(int $id): bool
@@ -45,5 +45,30 @@ class AreaRepository implements AreaInterface
         }
 
         return (bool) $area->delete();
+    }
+
+    public function existsByNombre(
+        string $nombre,
+        ?int $excludeId = null
+    ): bool {
+        return Area::where('Nombre_Area', $nombre)
+            ->when(
+                $excludeId !== null,
+                function ($query) use ($excludeId) {
+                    $query->where(
+                        'Id_Area',
+                        '!=',
+                        $excludeId
+                    );
+                }
+            )
+            ->exists();
+    }
+
+    public function hasMaterias(int $id): bool
+    {
+        return Area::whereKey($id)
+            ->whereHas('materias')
+            ->exists();
     }
 }

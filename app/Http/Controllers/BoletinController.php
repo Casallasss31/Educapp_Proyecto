@@ -10,8 +10,9 @@ class BoletinController extends Controller
 {
     protected BoletinService $boletinService;
 
-    public function __construct(BoletinService $boletinService)
-    {
+    public function __construct(
+        BoletinService $boletinService
+    ) {
         $this->boletinService = $boletinService;
     }
 
@@ -27,7 +28,9 @@ class BoletinController extends Controller
 
     public function show(int $id): JsonResponse
     {
-        $boletin = $this->boletinService->findById($id);
+        $boletin = $this->boletinService->findById(
+            $id
+        );
 
         if (!$boletin) {
             return response()->json([
@@ -41,8 +44,9 @@ class BoletinController extends Controller
         ], 200);
     }
 
-    public function store(BoletinRequest $request): JsonResponse
-    {
+    public function store(
+        BoletinRequest $request
+    ): JsonResponse {
         $boletin = $this->boletinService->create(
             $request->validated()
         );
@@ -53,8 +57,10 @@ class BoletinController extends Controller
         ], 201);
     }
 
-    public function update(BoletinRequest $request, int $id): JsonResponse
-    {
+    public function update(
+        BoletinRequest $request,
+        int $id
+    ): JsonResponse {
         $boletin = $this->boletinService->update(
             $id,
             $request->validated()
@@ -74,7 +80,9 @@ class BoletinController extends Controller
 
     public function destroy(int $id): JsonResponse
     {
-        $eliminado = $this->boletinService->delete($id);
+        $eliminado = $this->boletinService->delete(
+            $id
+        );
 
         if (!$eliminado) {
             return response()->json([

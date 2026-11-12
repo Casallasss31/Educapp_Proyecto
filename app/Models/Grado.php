@@ -25,7 +25,7 @@ class Grado extends Model
     {
         return $this->hasMany(
             Curso::class,
-            'Id_grado',
+            'Id_Grado',
             'Id_Grado'
         );
     }

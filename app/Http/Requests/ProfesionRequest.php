@@ -14,7 +14,25 @@ class ProfesionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'Nombre_Profesion' => 'required|string|max:150',
+            'Nombre_Profesion' => [
+                'required',
+                'string',
+                'max:150'
+            ]
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'Nombre_Profesion.required' =>
+                'El nombre de la profesión es obligatorio.',
+
+            'Nombre_Profesion.string' =>
+                'El nombre de la profesión debe ser un texto.',
+
+            'Nombre_Profesion.max' =>
+                'El nombre de la profesión no puede superar los 150 caracteres.'
         ];
     }
 }

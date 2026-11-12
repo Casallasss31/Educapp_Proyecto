@@ -25,13 +25,10 @@ class HorarioAcademico extends Model
         'Id_materia'
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'Hora_inicio' => 'datetime:H:i:s',
-            'Horario_final' => 'datetime:H:i:s'
-        ];
-    }
+    protected $casts = [
+        'Id_curso' => 'integer',
+        'Id_materia' => 'integer'
+    ];
 
     public function curso(): BelongsTo
     {

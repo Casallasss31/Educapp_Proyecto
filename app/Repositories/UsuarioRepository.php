@@ -10,21 +10,40 @@ class UsuarioRepository implements UsuarioInterface
 {
     public function getAll(): Collection
     {
-        return Usuario::all();
+        return Usuario::with([
+            'rol',
+            'eps',
+            'grupoSanguineo',
+            'barrio'
+        ])->get();
     }
 
     public function findById(int $id): ?Usuario
     {
-        return Usuario::find($id);
+        return Usuario::with([
+            'rol',
+            'eps',
+            'grupoSanguineo',
+            'barrio'
+        ])->find($id);
     }
 
     public function create(array $data): Usuario
     {
-        return Usuario::create($data);
+        $usuario = Usuario::create($data);
+
+        return $usuario->load([
+            'rol',
+            'eps',
+            'grupoSanguineo',
+            'barrio'
+        ]);
     }
 
-    public function update(int $id, array $data): ?Usuario
-    {
+    public function update(
+        int $id,
+        array $data
+    ): ?Usuario {
         $usuario = Usuario::find($id);
 
         if (!$usuario) {
@@ -33,7 +52,12 @@ class UsuarioRepository implements UsuarioInterface
 
         $usuario->update($data);
 
-        return $usuario;
+        return $usuario->refresh()->load([
+            'rol',
+            'eps',
+            'grupoSanguineo',
+            'barrio'
+        ]);
     }
 
     public function delete(int $id): bool
@@ -45,5 +69,52 @@ class UsuarioRepository implements UsuarioInterface
         }
 
         return (bool) $usuario->delete();
+    }
+
+    public function existsByDocumento(
+        string $tipoDocumento,
+        string $numeroDocumento,
+        ?int $excludeId = null
+    ): bool {
+        return Usuario::where(
+            'Tipo_Documento',
+            $tipoDocumento
+        )
+            ->where(
+                'Numero_Documento',
+                $numeroDocumento
+            )
+            ->when(
+                $excludeId !== null,
+                function ($query) use ($excludeId) {
+                    $query->where(
+                        'Id_usuario',
+                        '!=',
+                        $excludeId
+                    );
+                }
+            )
+            ->exists();
+    }
+
+    public function existsByCorreo(
+        string $correo,
+        ?int $excludeId = null
+    ): bool {
+        return Usuario::where(
+            'Correo_Electronico',
+            $correo
+        )
+            ->when(
+                $excludeId !== null,
+                function ($query) use ($excludeId) {
+                    $query->where(
+                        'Id_usuario',
+                        '!=',
+                        $excludeId
+                    );
+                }
+            )
+            ->exists();
     }
 }

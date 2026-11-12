@@ -4,84 +4,107 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\DetalleBoletinRequest;
 use App\Services\DetalleBoletinService;
+use Illuminate\Http\JsonResponse;
 
 class DetalleBoletinController extends Controller
 {
-    protected DetalleBoletinService $detalleBoletinService;
+    protected DetalleBoletinService $detalleService;
 
-    public function __construct(DetalleBoletinService $detalleBoletinService)
-    {
-        $this->detalleBoletinService = $detalleBoletinService;
+    public function __construct(
+        DetalleBoletinService $detalleService
+    ) {
+        $this->detalleService = $detalleService;
     }
 
-    // Listar todos los detalles de boletines
-    public function index()
+    public function index(): JsonResponse
     {
-        $detalles = $this->detalleBoletinService->getAll();
+        $detalles = $this->detalleService->getAll();
 
-        return response()->json($detalles, 200);
+        return response()->json([
+            'mensaje' => 'Detalles de boletín obtenidos correctamente.',
+            'datos' => $detalles
+        ], 200);
     }
 
-    // Registrar un detalle de boletín
-    public function store(DetalleBoletinRequest $request)
+    public function show(int $id): JsonResponse
     {
-        $detalle = $this->detalleBoletinService->create(
+        $detalle = $this->detalleService->findById(
+            $id
+        );
+
+        if (!$detalle) {
+            return response()->json([
+                'mensaje' => 'Detalle de boletín no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Detalle obtenido correctamente.',
+            'datos' => $detalle
+        ], 200);
+    }
+
+    public function store(
+        DetalleBoletinRequest $request
+    ): JsonResponse {
+        $detalle = $this->detalleService->create(
             $request->validated()
         );
 
         return response()->json([
-            'mensaje' => 'Detalle de boletín registrado correctamente',
-            'data' => $detalle
+            'mensaje' => 'Detalle de boletín creado correctamente.',
+            'datos' => $detalle
         ], 201);
     }
 
-    // Consultar un detalle por ID
-    public function show(int $id)
-    {
-        $detalle = $this->detalleBoletinService->findById($id);
-
-        if (!$detalle) {
-            return response()->json([
-                'mensaje' => 'Detalle de boletín no encontrado'
-            ], 404);
-        }
-
-        return response()->json($detalle, 200);
-    }
-
-    // Actualizar un detalle de boletín
-    public function update(DetalleBoletinRequest $request, int $id)
-    {
-        $detalle = $this->detalleBoletinService->update(
+    public function update(
+        DetalleBoletinRequest $request,
+        int $id
+    ): JsonResponse {
+        $detalle = $this->detalleService->update(
             $id,
             $request->validated()
         );
 
         if (!$detalle) {
             return response()->json([
-                'mensaje' => 'Detalle de boletín no encontrado'
+                'mensaje' => 'Detalle de boletín no encontrado.'
             ], 404);
         }
 
         return response()->json([
-            'mensaje' => 'Detalle de boletín actualizado correctamente',
-            'data' => $detalle
+            'mensaje' => 'Detalle actualizado correctamente.',
+            'datos' => $detalle
         ], 200);
     }
 
-    // Eliminar un detalle de boletín
-    public function destroy(int $id)
+    public function destroy(int $id): JsonResponse
     {
-        $eliminado = $this->detalleBoletinService->delete($id);
+        $eliminado = $this->detalleService->delete(
+            $id
+        );
 
         if (!$eliminado) {
             return response()->json([
-                'mensaje' => 'Detalle de boletín no encontrado'
+                'mensaje' => 'Detalle de boletín no encontrado.'
             ], 404);
         }
 
         return response()->json([
-            'mensaje' => 'Detalle de boletín eliminado correctamente'
+            'mensaje' => 'Detalle eliminado correctamente.'
+        ], 200);
+    }
+
+    public function porBoletin(
+        int $idBoletin
+    ): JsonResponse {
+        $detalles = $this->detalleService->getByBoletin(
+            $idBoletin
+        );
+
+        return response()->json([
+            'mensaje' => 'Detalles del boletín obtenidos correctamente.',
+            'datos' => $detalles
         ], 200);
     }
 }

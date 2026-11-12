@@ -16,4 +16,11 @@ interface GradoInterface
     public function update(int $id, array $data): ?Grado;
 
     public function delete(int $id): bool;
+
+    public function existsByNombre(
+        string $nombre,
+        ?int $excludeId = null
+    ): bool;
+
+    public function hasCursos(int $id): bool;
 }

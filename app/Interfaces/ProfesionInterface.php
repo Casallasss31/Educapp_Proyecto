@@ -13,7 +13,17 @@ interface ProfesionInterface
 
     public function create(array $data): Profesion;
 
-    public function update(int $id, array $data): ?Profesion;
+    public function update(
+        int $id,
+        array $data
+    ): ?Profesion;
 
     public function delete(int $id): bool;
+
+    public function existsByNombre(
+        string $nombre,
+        ?int $excludeId = null
+    ): bool;
+
+    public function hasAcudientes(int $id): bool;
 }

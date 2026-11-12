@@ -24,6 +24,12 @@ class Certificado extends Model
         'Id_estudiante'
     ];
 
+    protected $casts = [
+        'Año' => 'integer',
+        'Id_Tipo_Certificado' => 'integer',
+        'Id_estudiante' => 'integer'
+    ];
+
     public function tipoCertificado(): BelongsTo
     {
         return $this->belongsTo(

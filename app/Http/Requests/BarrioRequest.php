@@ -14,10 +14,39 @@ class BarrioRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'Estrato' => 'required|integer|between:1,6',
-            'Nombre_Barrio' => 'required|string|max:100',
-            'Direccion' => 'required|string|max:150',
-            'Id_localidad' => 'required|integer|exists:localidad,Id_Localidad',
+            'Nombre_Barrio' => [
+                'required',
+                'string',
+                'max:150'
+            ],
+            'Id_localidad' => [
+                'required',
+                'integer',
+                'exists:localidad,Id_Localidad'
+            ]
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'Nombre_Barrio.required' =>
+                'El nombre del barrio es obligatorio.',
+
+            'Nombre_Barrio.string' =>
+                'El nombre del barrio debe ser un texto.',
+
+            'Nombre_Barrio.max' =>
+                'El nombre del barrio no puede superar los 150 caracteres.',
+
+            'Id_localidad.required' =>
+                'La localidad es obligatoria.',
+
+            'Id_localidad.integer' =>
+                'El ID de la localidad debe ser un número entero.',
+
+            'Id_localidad.exists' =>
+                'La localidad seleccionada no existe.'
         ];
     }
 }

@@ -23,8 +23,10 @@ class GrupoSanguineoRepository implements GrupoSanguineoInterface
         return GrupoSanguineo::create($data);
     }
 
-    public function update(int $id, array $data): ?GrupoSanguineo
-    {
+    public function update(
+        int $id,
+        array $data
+    ): ?GrupoSanguineo {
         $grupoSanguineo = GrupoSanguineo::find($id);
 
         if (!$grupoSanguineo) {
@@ -33,7 +35,7 @@ class GrupoSanguineoRepository implements GrupoSanguineoInterface
 
         $grupoSanguineo->update($data);
 
-        return $grupoSanguineo;
+        return $grupoSanguineo->refresh();
     }
 
     public function delete(int $id): bool
@@ -45,5 +47,32 @@ class GrupoSanguineoRepository implements GrupoSanguineoInterface
         }
 
         return (bool) $grupoSanguineo->delete();
+    }
+
+    public function existsByGrupoAndRH(
+        string $grupo,
+        string $rh,
+        ?int $excludeId = null
+    ): bool {
+        return GrupoSanguineo::where('Grupo', $grupo)
+            ->where('RH', $rh)
+            ->when(
+                $excludeId !== null,
+                function ($query) use ($excludeId) {
+                    $query->where(
+                        'Id_GRUPO_SANGUINEO',
+                        '!=',
+                        $excludeId
+                    );
+                }
+            )
+            ->exists();
+    }
+
+    public function hasUsuarios(int $id): bool
+    {
+        return GrupoSanguineo::whereKey($id)
+            ->whereHas('usuarios')
+            ->exists();
     }
 }

@@ -10,21 +10,34 @@ class CursoRepository implements CursoInterface
 {
     public function getAll(): Collection
     {
-        return Curso::all();
+        return Curso::with([
+            'grado',
+            'docente.usuario'
+        ])->get();
     }
 
     public function findById(int $id): ?Curso
     {
-        return Curso::find($id);
+        return Curso::with([
+            'grado',
+            'docente.usuario'
+        ])->find($id);
     }
 
     public function create(array $data): Curso
     {
-        return Curso::create($data);
+        $curso = Curso::create($data);
+
+        return $curso->load([
+            'grado',
+            'docente.usuario'
+        ]);
     }
 
-    public function update(int $id, array $data): ?Curso
-    {
+    public function update(
+        int $id,
+        array $data
+    ): ?Curso {
         $curso = Curso::find($id);
 
         if (!$curso) {
@@ -33,7 +46,10 @@ class CursoRepository implements CursoInterface
 
         $curso->update($data);
 
-        return $curso;
+        return $curso->refresh()->load([
+            'grado',
+            'docente.usuario'
+        ]);
     }
 
     public function delete(int $id): bool
@@ -45,5 +61,37 @@ class CursoRepository implements CursoInterface
         }
 
         return (bool) $curso->delete();
+    }
+
+    public function existsById(int $id): bool
+    {
+        return Curso::whereKey($id)->exists();
+    }
+
+    public function existsByGradoAndAnio(
+        int $idGrado,
+        int $anio,
+        ?int $excludeId = null
+    ): bool {
+        return Curso::where('Id_grado', $idGrado)
+            ->where('Año', $anio)
+            ->when(
+                $excludeId !== null,
+                function ($query) use ($excludeId) {
+                    $query->where(
+                        'Id_Curso',
+                        '!=',
+                        $excludeId
+                    );
+                }
+            )
+            ->exists();
+    }
+
+    public function hasEstudiantes(int $id): bool
+    {
+        return Curso::whereKey($id)
+            ->whereHas('estudiantes')
+            ->exists();
     }
 }

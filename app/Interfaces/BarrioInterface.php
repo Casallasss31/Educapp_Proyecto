@@ -16,4 +16,14 @@ interface BarrioInterface
     public function update(int $id, array $data): ?Barrio;
 
     public function delete(int $id): bool;
+
+    public function existsByNombreAndLocalidad(
+        string $nombre,
+        int $idLocalidad,
+        ?int $excludeId = null
+    ): bool;
+
+    public function existsLocalidad(int $idLocalidad): bool;
+
+    public function hasUsuarios(int $id): bool;
 }

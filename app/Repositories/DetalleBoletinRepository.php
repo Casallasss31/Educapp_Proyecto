@@ -10,40 +10,94 @@ class DetalleBoletinRepository implements DetalleBoletinInterface
 {
     public function getAll(): Collection
     {
-        return DetalleBoletin::all();
+        return DetalleBoletin::with([
+            'docente.usuario',
+            'boletin.estudiante.usuario',
+            'boletin.materia'
+        ])->get();
     }
 
     public function findById(int $id): ?DetalleBoletin
     {
-        return DetalleBoletin::find($id);
+        return DetalleBoletin::with([
+            'docente.usuario',
+            'boletin.estudiante.usuario',
+            'boletin.materia'
+        ])->find($id);
     }
 
     public function create(array $data): DetalleBoletin
     {
-        return DetalleBoletin::create($data);
+        $detalle = DetalleBoletin::create($data);
+
+        return $detalle->load([
+            'docente.usuario',
+            'boletin.estudiante.usuario',
+            'boletin.materia'
+        ]);
     }
 
-    public function update(int $id, array $data): ?DetalleBoletin
-    {
-        $detalleBoletin = DetalleBoletin::find($id);
+    public function update(
+        int $id,
+        array $data
+    ): ?DetalleBoletin {
+        $detalle = DetalleBoletin::find($id);
 
-        if (!$detalleBoletin) {
+        if (!$detalle) {
             return null;
         }
 
-        $detalleBoletin->update($data);
+        $detalle->update($data);
 
-        return $detalleBoletin;
+        return $detalle->refresh()->load([
+            'docente.usuario',
+            'boletin.estudiante.usuario',
+            'boletin.materia'
+        ]);
     }
 
     public function delete(int $id): bool
     {
-        $detalleBoletin = DetalleBoletin::find($id);
+        $detalle = DetalleBoletin::find($id);
 
-        if (!$detalleBoletin) {
+        if (!$detalle) {
             return false;
         }
 
-        return (bool) $detalleBoletin->delete();
+        return (bool) $detalle->delete();
+    }
+
+    public function existsByDocenteAndBoletin(
+        int $idDocente,
+        int $idBoletin,
+        ?int $excludeId = null
+    ): bool {
+        return DetalleBoletin::where(
+            'Id_docentes',
+            $idDocente
+        )
+            ->where('Id_boletin', $idBoletin)
+            ->when(
+                $excludeId !== null,
+                function ($query) use ($excludeId) {
+                    $query->where(
+                        'Id_detalle_boletin',
+                        '!=',
+                        $excludeId
+                    );
+                }
+            )
+            ->exists();
+    }
+
+    public function getByBoletin(
+        int $idBoletin
+    ): Collection {
+        return DetalleBoletin::with([
+            'docente.usuario',
+            'boletin.materia'
+        ])
+            ->where('Id_boletin', $idBoletin)
+            ->get();
     }
 }
