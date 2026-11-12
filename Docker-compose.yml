@@ -1,54 +1,56 @@
-
 services:
   app:
+    container_name: educapp_api
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: educapp_app
     working_dir: /var/www/html
     volumes:
       - .:/var/www/html
     ports:
       - "8000:8000"
-    environment:
-      DB_CONNECTION: mysql
-      DB_HOST: db
-      DB_PORT: 3306
-      DB_DATABASE: educapp
-      DB_USERNAME: root
-      DB_PASSWORD: "1234"
+    env_file:
+      - .env
+    command: php artisan serve --host=0.0.0.0 --port=8000
     depends_on:
-      - db
+      mysql:
+        condition: service_healthy
     networks:
       - red_privada
-    command: sh -c "composer install && php artisan serve --host=0.0.0.0 --port=8000"
 
-  db:
+  mysql:
     image: mysql:8.0
-    container_name: educapp_db
-    restart: always
+    container_name: educapp_mysql
+    restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: "1234"
       MYSQL_DATABASE: educapp
+      MYSQL_ROOT_PASSWORD: "1234"
     ports:
-      - "3307:3306"
-    networks:
-      - red_privada
+      - "3308:3306"
     volumes:
       - educapp_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p1234"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - red_privada
 
   phpmyadmin:
     image: phpmyadmin:latest
     container_name: educapp_phpmyadmin
     restart: always
     environment:
-      PMA_HOST: db
+      PMA_HOST: mysql
+      PMA_PORT: 3306
     ports:
       - "8081:80"
+    depends_on:
+      mysql:
+        condition: service_healthy
     networks:
       - red_privada
-    depends_on:
-      - db
 
 volumes:
   educapp_mysql_data:

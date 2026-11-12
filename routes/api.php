@@ -26,6 +26,8 @@ use App\Http\Controllers\CertificadoController;
 use App\Http\Controllers\MatriculaController;
 use App\Http\Controllers\HorarioAcademicoController;
 
+
+Route::prefix('v1')->group(function () {
 // Usuarios y roles
 Route::apiResource('usuarios', UsuarioController::class);
 Route::apiResource('roles', RolController::class);
@@ -58,3 +60,5 @@ Route::apiResource('tipos-certificado', TipoCertificadoController::class);
 Route::apiResource('certificados', CertificadoController::class);
 Route::apiResource('matriculas', MatriculaController::class);
 Route::apiResource('horarios-academicos', HorarioAcademicoController::class);
+
+});
