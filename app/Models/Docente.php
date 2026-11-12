@@ -50,4 +50,9 @@ class Docente extends Model
             'Id_Docente'
         );
     }
+
+    public function detallesBoletin(): HasMany
+    {
+        return $this->hasMany(DetalleBoletin::class, 'Id_docentes', 'Id_Docente');
+    }
 }
