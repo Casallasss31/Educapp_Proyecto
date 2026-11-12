@@ -13,7 +13,17 @@ interface AcudienteInterface
 
     public function create(array $data): Acudiente;
 
-    public function update(int $id, array $data): ?Acudiente;
+    public function update(
+        int $id,
+        array $data
+    ): ?Acudiente;
 
     public function delete(int $id): bool;
+
+    public function existsByUsuario(
+        int $idUsuario,
+        ?int $excludeId = null
+    ): bool;
+
+    public function hasEstudiantes(int $id): bool;
 }

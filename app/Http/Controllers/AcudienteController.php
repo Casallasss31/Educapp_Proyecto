@@ -10,8 +10,9 @@ class AcudienteController extends Controller
 {
     protected AcudienteService $acudienteService;
 
-    public function __construct(AcudienteService $acudienteService)
-    {
+    public function __construct(
+        AcudienteService $acudienteService
+    ) {
         $this->acudienteService = $acudienteService;
     }
 
@@ -41,8 +42,9 @@ class AcudienteController extends Controller
         ], 200);
     }
 
-    public function store(AcudienteRequest $request): JsonResponse
-    {
+    public function store(
+        AcudienteRequest $request
+    ): JsonResponse {
         $acudiente = $this->acudienteService->create(
             $request->validated()
         );
@@ -53,8 +55,10 @@ class AcudienteController extends Controller
         ], 201);
     }
 
-    public function update(AcudienteRequest $request, int $id): JsonResponse
-    {
+    public function update(
+        AcudienteRequest $request,
+        int $id
+    ): JsonResponse {
         $acudiente = $this->acudienteService->update(
             $id,
             $request->validated()

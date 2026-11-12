@@ -18,6 +18,7 @@ class Localidad extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'Id_Localidad',
         'Nombre_Localidad'
     ];
 

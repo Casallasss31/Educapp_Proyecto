@@ -16,4 +16,11 @@ interface LocalidadInterface
     public function update(int $id, array $data): ?Localidad;
 
     public function delete(int $id): bool;
+
+    public function existsByNombre(
+        string $nombre,
+        ?int $excludeId = null
+    ): bool;
+
+    public function hasBarrios(int $id): bool;
 }

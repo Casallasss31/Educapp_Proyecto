@@ -10,21 +10,35 @@ class AcudienteRepository implements AcudienteInterface
 {
     public function getAll(): Collection
     {
-        return Acudiente::all();
+        return Acudiente::with([
+            'usuario',
+            'profesion'
+        ])->get();
     }
 
     public function findById(int $id): ?Acudiente
     {
-        return Acudiente::find($id);
+        return Acudiente::with([
+            'usuario',
+            'profesion',
+            'estudiantes'
+        ])->find($id);
     }
 
     public function create(array $data): Acudiente
     {
-        return Acudiente::create($data);
+        $acudiente = Acudiente::create($data);
+
+        return $acudiente->load([
+            'usuario',
+            'profesion'
+        ]);
     }
 
-    public function update(int $id, array $data): ?Acudiente
-    {
+    public function update(
+        int $id,
+        array $data
+    ): ?Acudiente {
         $acudiente = Acudiente::find($id);
 
         if (!$acudiente) {
@@ -33,7 +47,10 @@ class AcudienteRepository implements AcudienteInterface
 
         $acudiente->update($data);
 
-        return $acudiente;
+        return $acudiente->refresh()->load([
+            'usuario',
+            'profesion'
+        ]);
     }
 
     public function delete(int $id): bool
@@ -45,5 +62,33 @@ class AcudienteRepository implements AcudienteInterface
         }
 
         return (bool) $acudiente->delete();
+    }
+
+    public function existsByUsuario(
+        int $idUsuario,
+        ?int $excludeId = null
+    ): bool {
+        return Acudiente::where(
+            'Id_usuario',
+            $idUsuario
+        )
+            ->when(
+                $excludeId !== null,
+                function ($query) use ($excludeId) {
+                    $query->where(
+                        'Id_Acudiente',
+                        '!=',
+                        $excludeId
+                    );
+                }
+            )
+            ->exists();
+    }
+
+    public function hasEstudiantes(int $id): bool
+    {
+        return Acudiente::whereKey($id)
+            ->whereHas('estudiantes')
+            ->exists();
     }
 }

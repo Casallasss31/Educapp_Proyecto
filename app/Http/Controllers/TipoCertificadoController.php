@@ -10,8 +10,9 @@ class TipoCertificadoController extends Controller
 {
     protected TipoCertificadoService $tipoCertificadoService;
 
-    public function __construct(TipoCertificadoService $tipoCertificadoService)
-    {
+    public function __construct(
+        TipoCertificadoService $tipoCertificadoService
+    ) {
         $this->tipoCertificadoService = $tipoCertificadoService;
     }
 
@@ -20,7 +21,7 @@ class TipoCertificadoController extends Controller
         $tipos = $this->tipoCertificadoService->getAll();
 
         return response()->json([
-            'mensaje' => 'Tipos de certificado obtenidos correctamente.',
+            'mensaje' => 'Tipos de certificados obtenidos correctamente.',
             'datos' => $tipos
         ], 200);
     }
@@ -41,8 +42,9 @@ class TipoCertificadoController extends Controller
         ], 200);
     }
 
-    public function store(TipoCertificadoRequest $request): JsonResponse
-    {
+    public function store(
+        TipoCertificadoRequest $request
+    ): JsonResponse {
         $tipo = $this->tipoCertificadoService->create(
             $request->validated()
         );
@@ -53,8 +55,10 @@ class TipoCertificadoController extends Controller
         ], 201);
     }
 
-    public function update(TipoCertificadoRequest $request, int $id): JsonResponse
-    {
+    public function update(
+        TipoCertificadoRequest $request,
+        int $id
+    ): JsonResponse {
         $tipo = $this->tipoCertificadoService->update(
             $id,
             $request->validated()

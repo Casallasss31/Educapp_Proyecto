@@ -33,7 +33,7 @@ class NotaRepository implements NotaInterface
 
         $nota->update($data);
 
-        return $nota;
+        return $nota->refresh();
     }
 
     public function delete(int $id): bool
@@ -45,5 +45,30 @@ class NotaRepository implements NotaInterface
         }
 
         return (bool) $nota->delete();
+    }
+
+    public function existsByNombre(
+        string $nombre,
+        ?int $excludeId = null
+    ): bool {
+        return Nota::where('Nombre_Nota', $nombre)
+            ->when(
+                $excludeId !== null,
+                function ($query) use ($excludeId) {
+                    $query->where(
+                        'Id_Nota',
+                        '!=',
+                        $excludeId
+                    );
+                }
+            )
+            ->exists();
+    }
+
+    public function hasDetallesBoletin(int $id): bool
+    {
+        return Nota::whereKey($id)
+            ->whereHas('detallesBoletin')
+            ->exists();
     }
 }

@@ -10,8 +10,9 @@ class AreaController extends Controller
 {
     protected AreaService $areaService;
 
-    public function __construct(AreaService $areaService)
-    {
+    public function __construct(
+        AreaService $areaService
+    ) {
         $this->areaService = $areaService;
     }
 
@@ -53,8 +54,10 @@ class AreaController extends Controller
         ], 201);
     }
 
-    public function update(AreaRequest $request, int $id): JsonResponse
-    {
+    public function update(
+        AreaRequest $request,
+        int $id
+    ): JsonResponse {
         $area = $this->areaService->update(
             $id,
             $request->validated()

@@ -21,29 +21,11 @@ class Profesion extends Model
         'Nombre_Profesion'
     ];
 
-    public function docentes(): HasMany
+    public function acudientes(): HasMany
     {
         return $this->hasMany(
-            Docente::class,
-            'Id_profesion',
-            'Id_Profesion'
-        );
-    }
-
-    public function rectores(): HasMany
-    {
-        return $this->hasMany(
-            Rector::class,
-            'Id_profesion',
-            'Id_Profesion'
-        );
-    }
-
-    public function asistentesAdministrativos(): HasMany
-    {
-        return $this->hasMany(
-            AsistenteAdministrativo::class,
-            'Id_profesion',
+            Acudiente::class,
+            'Id_Profesion',
             'Id_Profesion'
         );
     }

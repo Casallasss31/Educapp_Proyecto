@@ -12,16 +12,15 @@ class Acudiente extends Model
 
     protected $primaryKey = 'Id_Acudiente';
 
-    public $incrementing = false;
+    public $incrementing = true;
 
     protected $keyType = 'int';
 
     public $timestamps = false;
 
     protected $fillable = [
-        'Numero_Telefono',
-        'Correo',
-        'Id_usuario'
+        'Id_usuario',
+        'Id_Profesion'
     ];
 
     public function usuario(): BelongsTo
@@ -33,11 +32,20 @@ class Acudiente extends Model
         );
     }
 
+    public function profesion(): BelongsTo
+    {
+        return $this->belongsTo(
+            Profesion::class,
+            'Id_Profesion',
+            'Id_Profesion'
+        );
+    }
+
     public function estudiantes(): HasMany
     {
         return $this->hasMany(
             Estudiante::class,
-            'Id_acudiente',
+            'Id_Acudiente',
             'Id_Acudiente'
         );
     }

@@ -10,8 +10,9 @@ class NotaController extends Controller
 {
     protected NotaService $notaService;
 
-    public function __construct(NotaService $notaService)
-    {
+    public function __construct(
+        NotaService $notaService
+    ) {
         $this->notaService = $notaService;
     }
 
@@ -53,8 +54,10 @@ class NotaController extends Controller
         ], 201);
     }
 
-    public function update(NotaRequest $request, int $id): JsonResponse
-    {
+    public function update(
+        NotaRequest $request,
+        int $id
+    ): JsonResponse {
         $nota = $this->notaService->update(
             $id,
             $request->validated()
@@ -87,3 +90,4 @@ class NotaController extends Controller
         ], 200);
     }
 }
+

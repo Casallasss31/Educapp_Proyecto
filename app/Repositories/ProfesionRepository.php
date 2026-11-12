@@ -23,8 +23,10 @@ class ProfesionRepository implements ProfesionInterface
         return Profesion::create($data);
     }
 
-    public function update(int $id, array $data): ?Profesion
-    {
+    public function update(
+        int $id,
+        array $data
+    ): ?Profesion {
         $profesion = Profesion::find($id);
 
         if (!$profesion) {
@@ -33,7 +35,7 @@ class ProfesionRepository implements ProfesionInterface
 
         $profesion->update($data);
 
-        return $profesion;
+        return $profesion->refresh();
     }
 
     public function delete(int $id): bool
@@ -45,5 +47,30 @@ class ProfesionRepository implements ProfesionInterface
         }
 
         return (bool) $profesion->delete();
+    }
+
+    public function existsByNombre(
+        string $nombre,
+        ?int $excludeId = null
+    ): bool {
+        return Profesion::where('Nombre_Profesion', $nombre)
+            ->when(
+                $excludeId !== null,
+                function ($query) use ($excludeId) {
+                    $query->where(
+                        'Id_Profesion',
+                        '!=',
+                        $excludeId
+                    );
+                }
+            )
+            ->exists();
+    }
+
+    public function hasAcudientes(int $id): bool
+    {
+        return Profesion::whereKey($id)
+            ->whereHas('acudientes')
+            ->exists();
     }
 }

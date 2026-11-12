@@ -33,7 +33,7 @@ class LocalidadRepository implements LocalidadInterface
 
         $localidad->update($data);
 
-        return $localidad;
+        return $localidad->refresh();
     }
 
     public function delete(int $id): bool
@@ -45,5 +45,30 @@ class LocalidadRepository implements LocalidadInterface
         }
 
         return (bool) $localidad->delete();
+    }
+
+    public function existsByNombre(
+        string $nombre,
+        ?int $excludeId = null
+    ): bool {
+        return Localidad::where('Nombre_Localidad', $nombre)
+            ->when(
+                $excludeId !== null,
+                function ($query) use ($excludeId) {
+                    $query->where(
+                        'Id_Localidad',
+                        '!=',
+                        $excludeId
+                    );
+                }
+            )
+            ->exists();
+    }
+
+    public function hasBarrios(int $id): bool
+    {
+        return Localidad::whereKey($id)
+            ->whereHas('barrios')
+            ->exists();
     }
 }

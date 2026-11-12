@@ -19,9 +19,7 @@ class Barrio extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'Estrato',
         'Nombre_Barrio',
-        'Direccion',
         'Id_localidad'
     ];
 

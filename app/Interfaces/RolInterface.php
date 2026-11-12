@@ -16,4 +16,11 @@ interface RolInterface
     public function update(int $id, array $data): ?Rol;
 
     public function delete(int $id): bool;
+
+    public function existsByTipo(
+        string $tipo,
+        ?int $excludeId = null
+    ): bool;
+
+    public function hasUsuarios(int $id): bool;
 }

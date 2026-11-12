@@ -33,7 +33,7 @@ class RolRepository implements RolInterface
 
         $rol->update($data);
 
-        return $rol;
+        return $rol->refresh();
     }
 
     public function delete(int $id): bool
@@ -45,5 +45,23 @@ class RolRepository implements RolInterface
         }
 
         return (bool) $rol->delete();
+    }
+
+    public function existsByTipo(
+        string $tipo,
+        ?int $excludeId = null
+    ): bool {
+        return Rol::where('Tipo', $tipo)
+            ->when($excludeId !== null, function ($query) use ($excludeId) {
+                $query->where('Id_Rol', '!=', $excludeId);
+            })
+            ->exists();
+    }
+
+    public function hasUsuarios(int $id): bool
+    {
+        return Rol::whereKey($id)
+            ->whereHas('usuarios')
+            ->exists();
     }
 }

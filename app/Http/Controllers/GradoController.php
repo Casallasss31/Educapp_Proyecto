@@ -10,8 +10,9 @@ class GradoController extends Controller
 {
     protected GradoService $gradoService;
 
-    public function __construct(GradoService $gradoService)
-    {
+    public function __construct(
+        GradoService $gradoService
+    ) {
         $this->gradoService = $gradoService;
     }
 
@@ -41,8 +42,9 @@ class GradoController extends Controller
         ], 200);
     }
 
-    public function store(GradoRequest $request): JsonResponse
-    {
+    public function store(
+        GradoRequest $request
+    ): JsonResponse {
         $grado = $this->gradoService->create(
             $request->validated()
         );
@@ -53,8 +55,10 @@ class GradoController extends Controller
         ], 201);
     }
 
-    public function update(GradoRequest $request, int $id): JsonResponse
-    {
+    public function update(
+        GradoRequest $request,
+        int $id
+    ): JsonResponse {
         $grado = $this->gradoService->update(
             $id,
             $request->validated()
