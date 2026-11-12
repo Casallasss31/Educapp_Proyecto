@@ -37,9 +37,9 @@ services:
     networks:
       - red_privada
 
-  phpmyadmin:
-    image: phpmyadmin:latest
-    container_name: educapp_phpmyadmin
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: educapp_pgadmin_container
     restart: always
     environment:
       PMA_HOST: mysql
