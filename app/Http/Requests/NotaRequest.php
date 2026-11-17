@@ -14,10 +14,16 @@ class NotaRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'Nombre_Nota' => [
+            'Valor_Nota' => [
                 'required',
-                'string',
-                'max:150'
+                'numeric',
+                'min:1',
+                'max:5',
+                'decimal:0,1'
+            ],
+
+            'Nombre_Nota' => [
+                'prohibited'
             ]
         ];
     }
@@ -25,14 +31,23 @@ class NotaRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'Nombre_Nota.required' =>
-                'El nombre de la nota es obligatorio.',
+            'Valor_Nota.required' =>
+                'El valor de la nota es obligatorio.',
 
-            'Nombre_Nota.string' =>
-                'El nombre de la nota debe ser un texto.',
+            'Valor_Nota.numeric' =>
+                'La nota debe ser un valor numerico.',
 
-            'Nombre_Nota.max' =>
-                'El nombre de la nota no puede superar los 150 caracteres.'
+            'Valor_Nota.min' =>
+                'La nota minima permitida es 1.0.',
+
+            'Valor_Nota.max' =>
+                'La nota maxima permitida es 5.0.',
+
+            'Valor_Nota.decimal' =>
+                'La nota solo puede tener un decimal.',
+
+            'Nombre_Nota.prohibited' =>
+                'El nombre de la nota se genera automaticamente.'
         ];
     }
 }

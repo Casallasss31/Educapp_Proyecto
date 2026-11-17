@@ -9,11 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('nota', function (Blueprint $table) {
-
             $table->increments('Id_Nota');
-
             $table->string('Nombre_Nota', 65)->nullable();
-
+            $table->decimal('Valor_Nota', 2, 1)->nullable();
             $table->timestamps();
         });
     }
@@ -23,5 +21,3 @@ return new class extends Migration
         Schema::dropIfExists('nota');
     }
 };
-
-

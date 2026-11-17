@@ -67,10 +67,4 @@ class ProfesionRepository implements ProfesionInterface
             ->exists();
     }
 
-    public function hasAcudientes(int $id): bool
-    {
-        return Profesion::whereKey($id)
-            ->whereHas('acudientes')
-            ->exists();
-    }
 }
