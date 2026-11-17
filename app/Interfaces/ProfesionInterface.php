@@ -25,5 +25,4 @@ interface ProfesionInterface
         ?int $excludeId = null
     ): bool;
 
-    public function hasAcudientes(int $id): bool;
 }

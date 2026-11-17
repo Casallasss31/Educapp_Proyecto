@@ -92,12 +92,6 @@ class ProfesionService
             return false;
         }
 
-        if ($this->profesionRepository->hasAcudientes($id)) {
-            throw new ConflictHttpException(
-                'No se puede eliminar la profesión porque tiene acudientes asociados.'
-            );
-        }
-
         return $this->profesionRepository->delete($id);
     }
 }

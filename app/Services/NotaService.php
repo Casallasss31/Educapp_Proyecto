@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Interfaces\NotaInterface;
 use App\Models\Nota;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 
@@ -28,31 +30,48 @@ class NotaService
         return $this->notaRepository->findById($id);
     }
 
+    private function clasificarNota(float $valor): string
+    {
+        return match (true) {
+            $valor >= 1.0 && $valor <= 3.4 => 'Bajo',
+
+            $valor >= 3.5 && $valor <= 3.9 => 'Básico',
+
+            $valor >= 4.0 && $valor <= 4.5 => 'Alto',
+
+            $valor >= 4.6 && $valor <= 5.0 => 'Superior',
+
+            default => throw ValidationException::withMessages([
+                'Valor_Nota' => [
+                    'El valor de la nota no es valido.'
+                ]
+            ])
+        };
+    }
+
+    private function prepararNota(array $data): array
+    {
+        $datos = Validator::make($data, [
+            'Valor_Nota' => [
+                'required',
+                'numeric',
+                'min:1',
+                'max:5',
+                'decimal:0,1'
+            ]
+        ])->validate();
+
+        $valor = (float) $datos['Valor_Nota'];
+
+        return [
+            'Valor_Nota' => $valor,
+            'Nombre_Nota' => $this->clasificarNota($valor)
+        ];
+    }
+
     public function create(array $data): Nota
     {
-        $data['Nombre_Nota'] = trim(
-            $data['Nombre_Nota']
-        );
-
-        if ($data['Nombre_Nota'] === '') {
-            throw ValidationException::withMessages([
-                'Nombre_Nota' => [
-                    'El nombre de la nota no puede estar vacío.'
-                ]
-            ]);
-        }
-
-        if (
-            $this->notaRepository->existsByNombre(
-                $data['Nombre_Nota']
-            )
-        ) {
-            throw ValidationException::withMessages([
-                'Nombre_Nota' => [
-                    'Esta nota ya se encuentra registrada.'
-                ]
-            ]);
-        }
+        $data = $this->prepararNota($data);
 
         return $this->notaRepository->create($data);
     }
@@ -65,32 +84,7 @@ class NotaService
             return null;
         }
 
-        if (isset($data['Nombre_Nota'])) {
-            $data['Nombre_Nota'] = trim(
-                $data['Nombre_Nota']
-            );
-
-            if ($data['Nombre_Nota'] === '') {
-                throw ValidationException::withMessages([
-                    'Nombre_Nota' => [
-                        'El nombre de la nota no puede estar vacío.'
-                    ]
-                ]);
-            }
-
-            if (
-                $this->notaRepository->existsByNombre(
-                    $data['Nombre_Nota'],
-                    $id
-                )
-            ) {
-                throw ValidationException::withMessages([
-                    'Nombre_Nota' => [
-                        'Ya existe otra nota con este nombre.'
-                    ]
-                ]);
-            }
-        }
+        $data = $this->prepararNota($data);
 
         return $this->notaRepository->update(
             $id,
@@ -106,12 +100,24 @@ class NotaService
             return false;
         }
 
-        if ($this->notaRepository->hasDetallesBoletin($id)) {
+        if ($this->notaRepository->hasMaterias($id)) {
             throw new ConflictHttpException(
-                'No se puede eliminar la nota porque tiene detalles de boletín asociados.'
+                'No se puede eliminar la nota porque tiene materias asociadas.'
             );
         }
 
-        return $this->notaRepository->delete($id);
+        try {
+            return $this->notaRepository->delete($id);
+
+        } catch (QueryException $e) {
+
+            if ((int) ($e->errorInfo[1] ?? 0) === 1451) {
+                throw new ConflictHttpException(
+                    'No se puede eliminar la nota porque tiene registros asociados.'
+                );
+            }
+
+            throw $e;
+        }
     }
 }
