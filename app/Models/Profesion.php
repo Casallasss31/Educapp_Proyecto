@@ -21,12 +21,4 @@ class Profesion extends Model
         'Nombre_Profesion'
     ];
 
-    public function acudientes(): HasMany
-    {
-        return $this->hasMany(
-            Acudiente::class,
-            'Id_Profesion',
-            'Id_Profesion'
-        );
-    }
 }

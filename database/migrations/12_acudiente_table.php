@@ -9,14 +9,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('acudiente', function (Blueprint $table) {
+            $table->id('id_acudiente');
 
-            $table->increments('Id_Acudiente');
-            
-            $table->unsignedInteger('Id_usuario')->nullable();
+            $table->unsignedBigInteger('id_usuario')->nullable();
+            $table->foreign('id_usuario')
+                  ->references('id_usuario')
+                  ->on('usuarios');
 
-            $table->foreign('Id_usuario')
-                ->references('Id_usuario')
-                ->on('usuarios');
+            $table->timestamps();
         });
     }
 

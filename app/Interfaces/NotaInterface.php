@@ -17,10 +17,5 @@ interface NotaInterface
 
     public function delete(int $id): bool;
 
-    public function existsByNombre(
-        string $nombre,
-        ?int $excludeId = null
-    ): bool;
-
-    public function hasDetallesBoletin(int $id): bool;
+    public function hasMaterias(int $id): bool;
 }

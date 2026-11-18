@@ -40,7 +40,7 @@ services:
       - red_privada
 
   phpmyadmin:
-    image: phpmyadmin/phpmyadmin:latest
+    image: phpmyadmin:latest
     container_name: educapp_phpmyadmin
     restart: always
     environment:

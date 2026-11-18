@@ -23,8 +23,10 @@ class TipoCertificadoRepository implements TipoCertificadoInterface
         return TipoCertificado::create($data);
     }
 
-    public function update(int $id, array $data): ?TipoCertificado
-    {
+    public function update(
+        int $id,
+        array $data
+    ): ?TipoCertificado {
         $tipoCertificado = TipoCertificado::find($id);
 
         if (!$tipoCertificado) {
@@ -33,7 +35,7 @@ class TipoCertificadoRepository implements TipoCertificadoInterface
 
         $tipoCertificado->update($data);
 
-        return $tipoCertificado;
+        return $tipoCertificado->refresh();
     }
 
     public function delete(int $id): bool
@@ -46,4 +48,33 @@ class TipoCertificadoRepository implements TipoCertificadoInterface
 
         return (bool) $tipoCertificado->delete();
     }
+
+    public function existsByNombre(
+        string $nombre,
+        ?int $excludeId = null
+    ): bool {
+        return TipoCertificado::where(
+            'Nombre_Certificado',
+            $nombre
+        )
+            ->when(
+                $excludeId !== null,
+                function ($query) use ($excludeId) {
+                    $query->where(
+                        'Id_Tipo_Certificado',
+                        '!=',
+                        $excludeId
+                    );
+                }
+            )
+            ->exists();
+    }
+
+    public function hasCertificados(int $id): bool
+    {
+        return TipoCertificado::whereKey($id)
+            ->whereHas('certificados')
+            ->exists();
+    }
 }
+

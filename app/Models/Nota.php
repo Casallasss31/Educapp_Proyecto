@@ -18,15 +18,21 @@ class Nota extends Model
     public $timestamps = true;
 
     protected $fillable = [
-        'Nombre_Nota'
+        'Nombre_Nota',
+        'Valor_Nota'
     ];
 
-    public function detallesBoletin(): HasMany
+    protected $casts = [
+        'Valor_Nota' => 'decimal:1'
+    ];
+
+    public function materias(): HasMany
     {
         return $this->hasMany(
-            DetalleBoletin::class,
-            'Id_Nota',
+            Materia::class,
+            'Id_nota',
             'Id_Nota'
         );
     }
 }
+
