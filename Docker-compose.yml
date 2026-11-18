@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   app:
     container_name: educapp_api
@@ -37,9 +39,9 @@ services:
     networks:
       - red_privada
 
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: educapp_pgadmin_container
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: educapp_phpmyadmin
     restart: always
     environment:
       PMA_HOST: mysql
