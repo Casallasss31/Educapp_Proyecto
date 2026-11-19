@@ -37,23 +37,44 @@ services:
     networks:
       - red_privada
 
-  phpmyadmin:
-    image: phpmyadmin:latest
-    container_name: educapp_phpmyadmin
+  postgres:
+    image: postgres:16-alpine
+    container_name: educapp_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: educapp
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "1234"
+    ports:
+      - "5432:5432"
+    volumes:
+      - educapp_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d educapp"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - red_privada
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: educapp_pgadmin
     restart: always
     environment:
-      PMA_HOST: mysql
-      PMA_PORT: 3306
+      PGADMIN_DEFAULT_EMAIL: admin@educapp.com
+      PGADMIN_DEFAULT_PASSWORD: "1234"
     ports:
-      - "8081:80"
+      - "8082:80"
     depends_on:
-      mysql:
+      postgres:
         condition: service_healthy
     networks:
       - red_privada
 
 volumes:
   educapp_mysql_data:
+  educapp_postgres_data:
 
 networks:
   red_privada:
