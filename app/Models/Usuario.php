@@ -50,7 +50,6 @@ class User extends Authenticatable implements JWTSubject
             'contraseña ' => 'hashed',
             'Fecha_Nacimiento' => 'date:Y-m-d',
             
-
         ];
     }
     

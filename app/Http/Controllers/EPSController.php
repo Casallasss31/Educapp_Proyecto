@@ -2,12 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\AuthorizesWithPermissions;
 use App\Http\Requests\EPSRequest;
 use App\Services\EPSService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Routing\Controllers\HasMiddleware;
 
-class EPSController extends Controller
+class EPSController extends Controller implements HasMiddleware
 {
+
+    use AuthorizesWithPermissions;
+
     protected EPSService $epsService;
 
     public function __construct(EPSService $epsService)
