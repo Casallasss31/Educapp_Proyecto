@@ -4,8 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
 
-class Usuario extends Model
+class User extends Authenticatable implements JWTSubject
+
 {
     protected $table = 'usuarios';
 
@@ -26,15 +29,36 @@ class Usuario extends Model
         'Genero',
         'Numero_Telefono',
         'Correo',
+        'contraseña',
         'Id_Rol',
         'Id_EPS',
         'Id_Grupo_Sanguineo',
         'Id_Barrio'
     ];
 
-    protected $casts = [
-        'Fecha_Nacimiento' => 'date:Y-m-d'
+    protected $hidden = [
+        'contraseña',
+        'remeber_token'
+
     ];
+
+
+
+    protected function casts (): array 
+    {
+        return [
+            'contraseña ' => 'hashed',
+            'Fecha_Nacimiento' => 'date:Y-m-d',
+            
+
+        ];
+    }
+    
+    public function getRolNombres(): ?string 
+    {
+        return $this->rol?->nombres;
+    }
+
 
     public function rol(): BelongsTo
     {
@@ -71,4 +95,19 @@ class Usuario extends Model
             'Id_Barrio'
         );
     }
+
+    public function getJWTIdentifier (): mixed
+    {
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims(): array
+    {
+        return[
+            'rol' => $this->getRolNombres(), 
+        ];
+    }
+
+
+    
 }

@@ -29,4 +29,9 @@ class Rol extends Model
             'Id_Rol'
         );
     }
+
+    public function permissions(): array
+    {
+        return config('rol.' .$this->Nombres, []); 
+    }
 }
