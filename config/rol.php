@@ -61,7 +61,6 @@ return [
         'certificado.view',
         'horario.view',
         'calendario.view',
-        'eps.view',
     ],
 
     'ACUDIENTE' => [
