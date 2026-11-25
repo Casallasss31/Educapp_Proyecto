@@ -3,29 +3,28 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Http\Requests\LoginRequest;
+use Illuminate\Http\JsonResponse;
 
 class AuthController extends Controller
 {
-    public function login(Request $request)
-    {
-        $credentials = $request->validate([
-            'Correo' => 'required|email',
-            'password' => 'required|string',
-        ]);
+    public function login(LoginRequest $request): JsonResponse
+{
+    $credentials = $request->validated();
 
-        if (!$token = auth('api')->attempt($credentials)) {
-            return response()->json([
-                'mensaje' => 'Credenciales incorrectas'
-            ], 403);
-        }
-
+    if (!$token = auth('api')->attempt($credentials)) {
         return response()->json([
-            'mensaje' => 'Inicio de sesión exitoso',
-            'access_token' => $token,
-            'token_type' => 'bearer',
-            'expires_in' => auth('api')->factory()->getTTL() * 60,
-        ], 200);
+            'mensaje' => 'Credenciales incorrectas'
+        ], 401);
     }
+
+    return response()->json([
+        'mensaje' => 'Inicio de sesión exitoso',
+        'access_token' => $token,
+        'token_type' => 'bearer',
+        'expires_in' => auth('api')->factory()->getTTL() * 60,
+    ], 200);
+}
 
      public function me(): JsonResponse
     {
@@ -41,7 +40,7 @@ class AuthController extends Controller
         return response()->json([
             'user' => $user,
             'role' => $user->getRoleName(),
-            'permissions' => $user->getPermissions(),
+            'permissions' => $user->getPermissions()
         ],200);
     }
 
