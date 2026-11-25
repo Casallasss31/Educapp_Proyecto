@@ -59,6 +59,15 @@ class Usuario extends Authenticatable implements JWTSubject
     public function getRolNombres(): ?string
     {
         return $this->rol?->Tipo;
+
+    }
+
+    public function getPermissions(): array
+    {
+        $rol = $this->getRolNombres();
+
+
+        return config("rol.{$rol}", []);
     }
 
     public function hasPermission(string $permission): bool

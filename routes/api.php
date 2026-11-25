@@ -29,31 +29,22 @@ use App\Http\Controllers\HorarioAcademicoController;
 
 Route::prefix('v1')->name('api.v1.')->group(function () {
 
-    // AUTENTICACION JWT
-
-    Route::post('login', [AuthController::class, 'login'])
-        ->middleware('throttle:10,1')
+    Route::post('/login', [AuthController::class, 'login'])
         ->name('login');
+
+    Route::post('/refresh', [AuthController::class, 'refresh'])
+        ->name('refresh');
 
     Route::middleware('auth:api')->group(function () {
 
-        Route::get('me', [AuthController::class, 'me'])
+        Route::get('/me', [AuthController::class, 'me'])
             ->name('me');
 
-        Route::post('logout', [AuthController::class, 'logout'])
+        Route::post('/logout', [AuthController::class, 'logout'])
             ->name('logout');
 
-        // Prueba del middleware de permisos
-
-        Route::get('prueba-permiso', function () {
-            return response()->json([
-                'mensaje' => 'Permiso autorizado correctamente',
-                'permiso' => 'estudiante.view'
-            ]);
-        })->middleware('permission:estudiante.view')
-          ->name('prueba-permiso');
-
     });
+
 
     // USUARIOS Y ROLES
 

@@ -38,11 +38,7 @@ class UsuarioService
             (string) $data['Numero_Documento']
         );
 
-        if (!empty($data['Correo_Electronico'])) {
-            $this->validarCorreo(
-                $data['Correo_Electronico']
-            );
-        }
+        $this->validarCorreo($data['Correo']);
 
         return $this->usuarioRepository->create($data);
     }
@@ -51,6 +47,7 @@ class UsuarioService
         int $id,
         array $data
     ): ?Usuario {
+
         $usuario = $this->usuarioRepository->findById($id);
 
         if (!$usuario) {
@@ -71,9 +68,9 @@ class UsuarioService
             $id
         );
 
-        if (!empty($data['Correo_Electronico'])) {
+        if (isset($data['Correo'])) {
             $this->validarCorreo(
-                $data['Correo_Electronico'],
+                $data['Correo'],
                 $id
             );
         }
@@ -94,7 +91,9 @@ class UsuarioService
 
         try {
             return $this->usuarioRepository->delete($id);
+
         } catch (QueryException $exception) {
+
             if (
                 $exception->getCode() === '23000' &&
                 (int) ($exception->errorInfo[1] ?? 0) === 1451
@@ -115,6 +114,7 @@ class UsuarioService
             as $campo
         ) {
             if (isset($data[$campo])) {
+
                 $data[$campo] = trim($data[$campo]);
 
                 if ($data[$campo] === '') {
@@ -127,16 +127,29 @@ class UsuarioService
             }
         }
 
-        if (isset($data['Correo_Electronico'])) {
-            $data['Correo_Electronico'] = mb_strtolower(
-                trim($data['Correo_Electronico'])
+        // Normalizar correo
+
+        if (isset($data['Correo'])) {
+            $data['Correo'] = mb_strtolower(
+                trim($data['Correo'])
             );
         }
 
-        if (isset($data['Numero_Telefonico'])) {
-            $data['Numero_Telefonico'] = trim(
-                $data['Numero_Telefonico']
+        // Normalizar teléfono
+
+        if (isset($data['Numero_Telefono'])) {
+            $data['Numero_Telefono'] = trim(
+                $data['Numero_Telefono']
             );
+        }
+
+        // Convertir password al campo de la base de datos
+
+        if (isset($data['password'])) {
+
+            $data['contraseña'] = $data['password'];
+
+            unset($data['password']);
         }
 
         return $data;
@@ -147,6 +160,7 @@ class UsuarioService
         string $numeroDocumento,
         ?int $excludeId = null
     ): void {
+
         if (
             $this->usuarioRepository->existsByDocumento(
                 $tipoDocumento,
@@ -166,6 +180,7 @@ class UsuarioService
         string $correo,
         ?int $excludeId = null
     ): void {
+
         if (
             $this->usuarioRepository->existsByCorreo(
                 $correo,
@@ -173,7 +188,7 @@ class UsuarioService
             )
         ) {
             throw ValidationException::withMessages([
-                'Correo_Electronico' => [
+                'Correo' => [
                     'Este correo electrónico ya se encuentra registrado.'
                 ]
             ]);

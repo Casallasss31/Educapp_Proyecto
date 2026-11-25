@@ -21,24 +21,28 @@ class UsuarioRequest extends FormRequest
         return [
             'Nombres' => [
                 $obligatorio,
+                'required',
                 'string',
                 'max:150'
             ],
 
             'Apellidos' => [
                 $obligatorio,
+                'required',
                 'string',
                 'max:150'
             ],
 
             'Tipo_Documento' => [
                 $obligatorio,
+                'required',
                 'string',
                 'max:100'
             ],
 
             'Numero_Documento' => [
                 $obligatorio,
+                'required',
                 'integer',
                 'min:1',
                 'max:2147483647'
@@ -56,20 +60,26 @@ class UsuarioRequest extends FormRequest
                 'in:Masculino,Femenino'
             ],
 
-            'Correo_Electronico' => [
-                'nullable',
+            'Correo' => [
+                $obligatorio,
+                'required',
                 'email',
                 'max:150',
-                Rule::unique(
-                    'usuarios',
-                    'Correo_Electronico'
-                )->ignore(
+                Rule::unique('usuarios', 'Correo')->ignore(
                     $this->route('usuario') ?? $this->route('id'),
                     'Id_usuario'
                 )
             ],
 
-            'Numero_Telefonico' => [
+            'password' => [
+                $obligatorio,
+                'required',
+                'string',
+                'min:8',
+                'max:72'
+            ],
+
+            'Numero_Telefono' => [
                 'nullable',
                 'string',
                 'regex:/^[0-9]{7,20}$/'
@@ -77,6 +87,7 @@ class UsuarioRequest extends FormRequest
 
             'Id_Rol' => [
                 $obligatorio,
+                'required',
                 'integer',
                 'exists:rol,Id_Rol'
             ],
@@ -107,35 +118,17 @@ class UsuarioRequest extends FormRequest
             'Nombres.required' =>
                 'Los nombres son obligatorios.',
 
-            'Nombres.string' =>
-                'Los nombres deben ser un texto.',
-
-            'Nombres.max' =>
-                'Los nombres no pueden superar los 150 caracteres.',
-
             'Apellidos.required' =>
                 'Los apellidos son obligatorios.',
 
-            'Apellidos.string' =>
-                'Los apellidos deben ser un texto.',
-
-            'Apellidos.max' =>
-                'Los apellidos no pueden superar los 150 caracteres.',
-
             'Tipo_Documento.required' =>
                 'El tipo de documento es obligatorio.',
-
-            'Tipo_Documento.string' =>
-                'El tipo de documento debe ser un texto.',
-
-            'Tipo_Documento.max' =>
-                'El tipo de documento no puede superar los 100 caracteres.',
 
             'Numero_Documento.required' =>
                 'El número de documento es obligatorio.',
 
             'Numero_Documento.integer' =>
-                'El número de documento debe ser un número entero.',
+                'El número de documento debe ser entero.',
 
             'Numero_Documento.min' =>
                 'El número de documento debe ser mayor que cero.',
@@ -152,20 +145,35 @@ class UsuarioRequest extends FormRequest
             'Genero.in' =>
                 'El género seleccionado no es válido.',
 
-            'Correo_Electronico.email' =>
-                'El correo electrónico no tiene un formato válido.',
+            'Correo.required' =>
+                'El correo electrónico es obligatorio.',
 
-            'Correo_Electronico.max' =>
+            'Correo.email' =>
+                'El correo electrónico no es válido.',
+
+            'Correo.max' =>
                 'El correo no puede superar los 150 caracteres.',
 
-            'Correo_Electronico.unique' =>
+            'Correo.unique' =>
                 'Este correo electrónico ya está registrado.',
 
-            'Numero_Telefonico.string' =>
+            'password.required' =>
+                'La contraseña es obligatoria.',
+
+            'password.string' =>
+                'La contraseña debe ser un texto.',
+
+            'password.min' =>
+                'La contraseña debe contener mínimo 8 caracteres.',
+
+            'password.max' =>
+                'La contraseña no puede superar los 72 caracteres.',
+
+            'Numero_Telefono.string' =>
                 'El número telefónico debe ser un texto.',
 
-            'Numero_Telefonico.regex' =>
-                'El número telefónico debe contener entre 7 y 20 dígitos numéricos.',
+            'Numero_Telefono.regex' =>
+                'El teléfono debe contener entre 7 y 20 dígitos.',
 
             'Id_Rol.required' =>
                 'El rol es obligatorio.',

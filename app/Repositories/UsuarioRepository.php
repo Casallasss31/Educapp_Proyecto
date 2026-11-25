@@ -97,24 +97,25 @@ class UsuarioRepository implements UsuarioInterface
             ->exists();
     }
 
-    public function existsByCorreo(
-        string $correo,
-        ?int $excludeId = null
+   public function existsByCorreo(
+    string $correo,
+    ?int $excludeId = null
     ): bool {
-        return Usuario::where(
-            'Correo_Electronico',
-            $correo
+
+    return Usuario::where(
+        'Correo',
+        $correo
+    )
+        ->when(
+            $excludeId !== null,
+            function ($query) use ($excludeId) {
+                $query->where(
+                    'Id_usuario',
+                    '!=',
+                    $excludeId
+                );
+            }
         )
-            ->when(
-                $excludeId !== null,
-                function ($query) use ($excludeId) {
-                    $query->where(
-                        'Id_usuario',
-                        '!=',
-                        $excludeId
-                    );
-                }
-            )
-            ->exists();
+        ->exists();
     }
 }
