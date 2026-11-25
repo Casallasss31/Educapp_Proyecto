@@ -1,0 +1,3956 @@
+﻿
+========== composer.json ==========
+{
+    "$schema": "https://getcomposer.org/schema.json",
+    "name": "laravel/laravel",
+    "type": "project",
+    "description": "The skeleton application for the Laravel framework.",
+    "keywords": ["laravel", "framework"],
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "laravel/framework": "^12.0",
+        "laravel/sanctum": "^4.0",
+        "laravel/tinker": "^2.10.1"
+    },
+    "require-dev": {
+        "fakerphp/faker": "^1.23",
+        "laravel/pail": "^1.2.2",
+        "laravel/pint": "^1.24",
+        "laravel/sail": "^1.41",
+        "mockery/mockery": "^1.6",
+        "nunomaduro/collision": "^8.6",
+        "phpunit/phpunit": "^11.5.50"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/",
+            "Database\\Factories\\": "database/factories/",
+            "Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "setup": [
+            "composer install",
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
+            "@php artisan key:generate",
+            "@php artisan migrate --force",
+            "npm install",
+            "npm run build"
+        ],
+        "dev": [
+            "Composer\\Config::disableProcessTimeout",
+            "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1 --timeout=0\" \"php artisan pail --timeout=0\" \"npm run dev\" --names=server,queue,logs,vite --kill-others"
+        ],
+        "test": [
+            "@php artisan config:clear --ansi",
+            "@php artisan test"
+        ],
+        "post-autoload-dump": [
+            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
+            "@php artisan package:discover --ansi"
+        ],
+        "post-update-cmd": [
+            "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
+        ],
+        "post-root-package-install": [
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+        ],
+        "post-create-project-cmd": [
+            "@php artisan key:generate --ansi",
+            "@php -r \"file_exists('database/database.sqlite') || touch('database/database.sqlite');\"",
+            "@php artisan migrate --graceful --ansi"
+        ],
+        "pre-package-uninstall": [
+            "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "dont-discover": []
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "php-http/discovery": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
+
+========== bootstrap/app.php ==========
+<?php
+ 
+use App\Http\Middleware\CheckPermission;
+use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Foundation\Configuration\Middleware;
+ 
+return Application::configure(basePath: dirname(__DIR__))
+    ->withRouting(
+        web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php',
+        commands: __DIR__.'/../routes/console.php',
+        health: '/up',
+    )
+    ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->alias([
+            'permission' => CheckPermission::class,
+        ]);
+    })
+    ->withExceptions(function (Exceptions $exceptions): void {
+        //
+    })->create();
+
+========== config/auth.php ==========
+<?php
+
+use App\Models\Usuario;
+
+return [
+
+    'defaults' => [
+        'guard' => env('AUTH_GUARD', 'api'),
+        'passwords' => env('AUTH_PASSWORD_BROKER', 'users'),
+    ],
+
+    'guards' => [
+        'web' => [
+            'driver' => 'session',
+            'provider' => 'users',
+        ],
+
+        'api' => [
+            'driver' => 'jwt',
+            'provider' => 'users',
+        ],
+    ],
+
+    
+
+
+    'providers' => [
+        'users' => [
+            'driver' => 'eloquent',
+            'model' => env('AUTH_MODEL', Usuario::class),
+
+        ],
+
+    ],
+
+    'passwords' => [
+        'users' => [
+            'provider' => 'users',
+            'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
+            'expire' => 60,
+            'throttle' => 60,
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Password Confirmation Timeout
+    |--------------------------------------------------------------------------
+    |
+    | Here you may define the number of seconds before a password confirmation
+    | window expires and users are asked to re-enter their password via the
+    | confirmation screen. By default, the timeout lasts for three hours.
+    |
+    */
+
+    'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
+
+];
+
+========== config/jwt.php ==========
+<?php
+
+/*
+ * This file is part of jwt-auth.
+ *
+ * (c) Sean Tymon <tymon148@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | JWT Authentication Secret
+    |--------------------------------------------------------------------------
+    |
+    | Don't forget to set this in your .env file, as it will be used to sign
+    | your tokens. A helper command is provided for this:
+    | `php artisan jwt:secret`
+    |
+    | Note: This will be used for Symmetric algorithms only (HMAC),
+    | since RSA and ECDSA use a private/public key combo (See below).
+    |
+    */
+
+    'secret' => env('JWT_SECRET'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | JWT Authentication Keys
+    |--------------------------------------------------------------------------
+    |
+    | The algorithm you are using, will determine whether your tokens are
+    | signed with a random string (defined in `JWT_SECRET`) or using the
+    | following public & private keys.
+    |
+    | Symmetric Algorithms:
+    | HS256, HS384 & HS512 will use `JWT_SECRET`.
+    |
+    | Asymmetric Algorithms:
+    | RS256, RS384 & RS512 / ES256, ES384 & ES512 will use the keys below.
+    |
+    */
+
+    'keys' => [
+
+        /*
+        |--------------------------------------------------------------------------
+        | Public Key
+        |--------------------------------------------------------------------------
+        |
+        | A path or resource to your public key.
+        |
+        | E.g. 'file://path/to/public/key'
+        |
+        */
+
+        'public' => env('JWT_PUBLIC_KEY'),
+
+        /*
+        |--------------------------------------------------------------------------
+        | Private Key
+        |--------------------------------------------------------------------------
+        |
+        | A path or resource to your private key.
+        |
+        | E.g. 'file://path/to/private/key'
+        |
+        */
+
+        'private' => env('JWT_PRIVATE_KEY'),
+
+        /*
+        |--------------------------------------------------------------------------
+        | Passphrase
+        |--------------------------------------------------------------------------
+        |
+        | The passphrase for your private key. Can be null if none set.
+        |
+        */
+
+        'passphrase' => env('JWT_PASSPHRASE'),
+
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | JWT time to live
+    |--------------------------------------------------------------------------
+    |
+    | Specify the length of time (in minutes) that the token will be valid for.
+    | Defaults to 1 hour.
+    |
+    | You can also set this to null, to yield a never expiring token.
+    | Some people may want this behaviour for e.g. a mobile app.
+    | This is not particularly recommended, so make sure you have appropriate
+    | systems in place to revoke the token if necessary.
+    | Notice: If you set this to null you should remove 'exp' element from 'required_claims' list.
+    |
+    */
+
+    'ttl' => env('JWT_TTL', 60),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Refresh time to live
+    |--------------------------------------------------------------------------
+    |
+    | Specify the length of time (in minutes) that the token can be refreshed
+    | within. I.E. The user can refresh their token within a 2 week window of
+    | the original token being created until they must re-authenticate.
+    | Defaults to 2 weeks.
+    |
+    | You can also set this to null, to yield an infinite refresh time.
+    | Some may want this instead of never expiring tokens for e.g. a mobile app.
+    | This is not particularly recommended, so make sure you have appropriate
+    | systems in place to revoke the token if necessary.
+    |
+    */
+
+    'refresh_ttl' => env('JWT_REFRESH_TTL', 20160),
+
+    /*
+    |--------------------------------------------------------------------------
+    | JWT hashing algorithm
+    |--------------------------------------------------------------------------
+    |
+    | Specify the hashing algorithm that will be used to sign the token.
+    |
+    */
+
+    'algo' => env('JWT_ALGO', Tymon\JWTAuth\Providers\JWT\Provider::ALGO_HS256),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Required Claims
+    |--------------------------------------------------------------------------
+    |
+    | Specify the required claims that must exist in any token.
+    | A TokenInvalidException will be thrown if any of these claims are not
+    | present in the payload.
+    |
+    */
+
+    'required_claims' => [
+        'iss',
+        'iat',
+        'exp',
+        'nbf',
+        'sub',
+        'jti',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Persistent Claims
+    |--------------------------------------------------------------------------
+    |
+    | Specify the claim keys to be persisted when refreshing a token.
+    | `sub` and `iat` will automatically be persisted, in
+    | addition to the these claims.
+    |
+    | Note: If a claim does not exist then it will be ignored.
+    |
+    */
+
+    'persistent_claims' => [
+        // 'foo',
+        // 'bar',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Lock Subject
+    |--------------------------------------------------------------------------
+    |
+    | This will determine whether a `prv` claim is automatically added to
+    | the token. The purpose of this is to ensure that if you have multiple
+    | authentication models e.g. `App\User` & `App\OtherPerson`, then we
+    | should prevent one authentication request from impersonating another,
+    | if 2 tokens happen to have the same id across the 2 different models.
+    |
+    | Under specific circumstances, you may want to disable this behaviour
+    | e.g. if you only have one authentication model, then you would save
+    | a little on token size.
+    |
+    */
+
+    'lock_subject' => true,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Leeway
+    |--------------------------------------------------------------------------
+    |
+    | This property gives the jwt timestamp claims some "leeway".
+    | Meaning that if you have any unavoidable slight clock skew on
+    | any of your servers then this will afford you some level of cushioning.
+    |
+    | This applies to the claims `iat`, `nbf` and `exp`.
+    |
+    | Specify in seconds - only if you know you need it.
+    |
+    */
+
+    'leeway' => env('JWT_LEEWAY', 0),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Blacklist Enabled
+    |--------------------------------------------------------------------------
+    |
+    | In order to invalidate tokens, you must have the blacklist enabled.
+    | If you do not want or need this functionality, then set this to false.
+    |
+    */
+
+    'blacklist_enabled' => env('JWT_BLACKLIST_ENABLED', true),
+
+    /*
+    | -------------------------------------------------------------------------
+    | Blacklist Grace Period
+    | -------------------------------------------------------------------------
+    |
+    | When multiple concurrent requests are made with the same JWT,
+    | it is possible that some of them fail, due to token regeneration
+    | on every request.
+    |
+    | Set grace period in seconds to prevent parallel request failure.
+    |
+    */
+
+    'blacklist_grace_period' => env('JWT_BLACKLIST_GRACE_PERIOD', 0),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Cookies encryption
+    |--------------------------------------------------------------------------
+    |
+    | By default Laravel encrypt cookies for security reason.
+    | If you decide to not decrypt cookies, you will have to configure Laravel
+    | to not encrypt your cookie token by adding its name into the $except
+    | array available in the middleware "EncryptCookies" provided by Laravel.
+    | see https://laravel.com/docs/master/responses#cookies-and-encryption
+    | for details.
+    |
+    | Set it to true if you want to decrypt cookies.
+    |
+    */
+
+    'decrypt_cookies' => false,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Providers
+    |--------------------------------------------------------------------------
+    |
+    | Specify the various providers used throughout the package.
+    |
+    */
+
+    'providers' => [
+
+        /*
+        |--------------------------------------------------------------------------
+        | JWT Provider
+        |--------------------------------------------------------------------------
+        |
+        | Specify the provider that is used to create and decode the tokens.
+        |
+        */
+
+        'jwt' => Tymon\JWTAuth\Providers\JWT\Lcobucci::class,
+
+        /*
+        |--------------------------------------------------------------------------
+        | Authentication Provider
+        |--------------------------------------------------------------------------
+        |
+        | Specify the provider that is used to authenticate users.
+        |
+        */
+
+        'auth' => Tymon\JWTAuth\Providers\Auth\Illuminate::class,
+
+        /*
+        |--------------------------------------------------------------------------
+        | Storage Provider
+        |--------------------------------------------------------------------------
+        |
+        | Specify the provider that is used to store tokens in the blacklist.
+        |
+        */
+
+        'storage' => Tymon\JWTAuth\Providers\Storage\Illuminate::class,
+
+    ],
+
+];
+
+========== routes/api.php ==========
+<?php
+
+use Illuminate\Support\Facades\Route;
+
+use App\Http\Controllers\UsuarioController;
+use App\Http\Controllers\DetalleBoletinController;
+use App\Http\Controllers\RolController;
+use App\Http\Controllers\EPSController;
+use App\Http\Controllers\GrupoSanguineoController;
+use App\Http\Controllers\LocalidadController;
+use App\Http\Controllers\BarrioController;
+use App\Http\Controllers\ProfesionController;
+use App\Http\Controllers\DocenteController;
+use App\Http\Controllers\RectorController;
+use App\Http\Controllers\AsistenteAdministrativoController;
+use App\Http\Controllers\AcudienteController;
+use App\Http\Controllers\EstudianteController;
+use App\Http\Controllers\GradoController;
+use App\Http\Controllers\CursoController;
+use App\Http\Controllers\AreaController;
+use App\Http\Controllers\NotaController;
+use App\Http\Controllers\MateriaController;
+use App\Http\Controllers\BoletinController;
+use App\Http\Controllers\TipoCertificadoController;
+use App\Http\Controllers\CertificadoController;
+use App\Http\Controllers\MatriculaController;
+use App\Http\Controllers\HorarioAcademicoController;
+
+Route::prefix('v1')->name('api.v1.')->group(function () {
+    // Usuarios y roles
+    Route::apiResource('usuarios', UsuarioController::class);
+    Route::apiResource('roles', RolController::class);
+
+    // InformaciÃ³n general
+    Route::apiResource('eps', EPSController::class);
+    Route::apiResource('grupos-sanguineos', GrupoSanguineoController::class);
+    Route::apiResource('localidades', LocalidadController::class);
+    Route::apiResource('barrios', BarrioController::class);
+    Route::apiResource('profesiones', ProfesionController::class);
+
+    // Personal institucional
+    Route::apiResource('docentes', DocenteController::class);
+    Route::apiResource('rectores', RectorController::class);
+    Route::apiResource('asistentes-administrativos', AsistenteAdministrativoController::class);
+
+    // Comunidad educativa
+    Route::apiResource('acudientes', AcudienteController::class);
+    Route::apiResource('estudiantes', EstudianteController::class);
+
+    // InformaciÃ³n acadÃ©mica
+    Route::apiResource('grados', GradoController::class);
+    Route::apiResource('cursos', CursoController::class);
+    Route::apiResource('areas', AreaController::class);
+    Route::apiResource('notas', NotaController::class);
+    Route::apiResource('materias', MateriaController::class);
+
+    // Consultas personalizadas antes de los recursos dinÃ¡micos
+    Route::get('boletines/estudiante/{idEstudiante}', [BoletinController::class, 'porEstudiante'])
+        ->whereNumber('idEstudiante')->name('boletines.por-estudiante');
+    Route::apiResource('boletines', BoletinController::class);
+
+    Route::get('detalles-boletin/boletin/{idBoletin}', [DetalleBoletinController::class, 'porBoletin'])
+        ->whereNumber('idBoletin')->name('detalles-boletin.por-boletin');
+    Route::apiResource('detalles-boletin', DetalleBoletinController::class);
+
+    Route::apiResource('tipos-certificado', TipoCertificadoController::class);
+
+    Route::get('certificados/estudiante/{idEstudiante}', [CertificadoController::class, 'porEstudiante'])
+        ->whereNumber('idEstudiante')->name('certificados.por-estudiante');
+    Route::apiResource('certificados', CertificadoController::class);
+
+    Route::get('matriculas/estudiante/{idEstudiante}', [MatriculaController::class, 'porEstudiante'])
+        ->whereNumber('idEstudiante')->name('matriculas.por-estudiante');
+    Route::apiResource('matriculas', MatriculaController::class);
+
+    Route::get('horarios-academicos/curso/{idCurso}', [HorarioAcademicoController::class, 'porCurso'])
+        ->whereNumber('idCurso')->name('horarios-academicos.por-curso');
+    Route::apiResource('horarios-academicos', HorarioAcademicoController::class);
+});
+
+========== C:\Users\APRENDIZ.DESKTOP-16JF3VT\Documents\Educapp_Proyecto\app\Http\Controllers\AcudienteController.php ==========
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\AcudienteRequest;
+use App\Services\AcudienteService;
+use Illuminate\Http\JsonResponse;
+
+class AcudienteController extends Controller
+{
+    protected AcudienteService $acudienteService;
+
+    public function __construct(
+        AcudienteService $acudienteService
+    ) {
+        $this->acudienteService = $acudienteService;
+    }
+
+    public function index(): JsonResponse
+    {
+        $acudientes = $this->acudienteService->getAll();
+
+        return response()->json([
+            'mensaje' => 'Acudientes obtenidos correctamente.',
+            'datos' => $acudientes
+        ], 200);
+    }
+
+    public function show(int $id): JsonResponse
+    {
+        $acudiente = $this->acudienteService->findById($id);
+
+        if (!$acudiente) {
+            return response()->json([
+                'mensaje' => 'Acudiente no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Acudiente obtenido correctamente.',
+            'datos' => $acudiente
+        ], 200);
+    }
+
+    public function store(
+        AcudienteRequest $request
+    ): JsonResponse {
+        $acudiente = $this->acudienteService->create(
+            $request->validated()
+        );
+
+        return response()->json([
+            'mensaje' => 'Acudiente creado correctamente.',
+            'datos' => $acudiente
+        ], 201);
+    }
+
+    public function update(
+        AcudienteRequest $request,
+        int $id
+    ): JsonResponse {
+        $acudiente = $this->acudienteService->update(
+            $id,
+            $request->validated()
+        );
+
+        if (!$acudiente) {
+            return response()->json([
+                'mensaje' => 'Acudiente no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Acudiente actualizado correctamente.',
+            'datos' => $acudiente
+        ], 200);
+    }
+
+    public function destroy(int $id): JsonResponse
+    {
+        $eliminado = $this->acudienteService->delete($id);
+
+        if (!$eliminado) {
+            return response()->json([
+                'mensaje' => 'Acudiente no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Acudiente eliminado correctamente.'
+        ], 200);
+    }
+}
+
+========== C:\Users\APRENDIZ.DESKTOP-16JF3VT\Documents\Educapp_Proyecto\app\Http\Controllers\AreaController.php ==========
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\AreaRequest;
+use App\Services\AreaService;
+use Illuminate\Http\JsonResponse;
+
+class AreaController extends Controller
+{
+    protected AreaService $areaService;
+
+    public function __construct(
+        AreaService $areaService
+    ) {
+        $this->areaService = $areaService;
+    }
+
+    public function index(): JsonResponse
+    {
+        $areas = $this->areaService->getAll();
+
+        return response()->json([
+            'mensaje' => 'Ãreas obtenidas correctamente.',
+            'datos' => $areas
+        ], 200);
+    }
+
+    public function show(int $id): JsonResponse
+    {
+        $area = $this->areaService->findById($id);
+
+        if (!$area) {
+            return response()->json([
+                'mensaje' => 'Ãrea no encontrada.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Ãrea obtenida correctamente.',
+            'datos' => $area
+        ], 200);
+    }
+
+    public function store(AreaRequest $request): JsonResponse
+    {
+        $area = $this->areaService->create(
+            $request->validated()
+        );
+
+        return response()->json([
+            'mensaje' => 'Ãrea creada correctamente.',
+            'datos' => $area
+        ], 201);
+    }
+
+    public function update(
+        AreaRequest $request,
+        int $id
+    ): JsonResponse {
+        $area = $this->areaService->update(
+            $id,
+            $request->validated()
+        );
+
+        if (!$area) {
+            return response()->json([
+                'mensaje' => 'Ãrea no encontrada.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Ãrea actualizada correctamente.',
+            'datos' => $area
+        ], 200);
+    }
+
+    public function destroy(int $id): JsonResponse
+    {
+        $eliminado = $this->areaService->delete($id);
+
+        if (!$eliminado) {
+            return response()->json([
+                'mensaje' => 'Ãrea no encontrada.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Ãrea eliminada correctamente.'
+        ], 200);
+    }
+}
+
+========== C:\Users\APRENDIZ.DESKTOP-16JF3VT\Documents\Educapp_Proyecto\app\Http\Controllers\AsistenteAdministrativoController.php ==========
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\AsistenteAdministrativoRequest;
+use App\Services\AsistenteAdministrativoService;
+use Illuminate\Http\JsonResponse;
+
+class AsistenteAdministrativoController extends Controller
+{
+    protected AsistenteAdministrativoService $asistenteService;
+
+    public function __construct(
+        AsistenteAdministrativoService $asistenteService
+    ) {
+        $this->asistenteService = $asistenteService;
+    }
+
+    public function index(): JsonResponse
+    {
+        $asistentes = $this->asistenteService->getAll();
+
+        return response()->json([
+            'mensaje' => 'Asistentes administrativos obtenidos correctamente.',
+            'datos' => $asistentes
+        ], 200);
+    }
+
+    public function show(int $id): JsonResponse
+    {
+        $asistente = $this->asistenteService->findById(
+            $id
+        );
+
+        if (!$asistente) {
+            return response()->json([
+                'mensaje' => 'Asistente administrativo no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Asistente administrativo obtenido correctamente.',
+            'datos' => $asistente
+        ], 200);
+    }
+
+    public function store(
+        AsistenteAdministrativoRequest $request
+    ): JsonResponse {
+        $asistente = $this->asistenteService->create(
+            $request->validated()
+        );
+
+        return response()->json([
+            'mensaje' => 'Asistente administrativo creado correctamente.',
+            'datos' => $asistente
+        ], 201);
+    }
+
+    public function update(
+        AsistenteAdministrativoRequest $request,
+        int $id
+    ): JsonResponse {
+        $asistente = $this->asistenteService->update(
+            $id,
+            $request->validated()
+        );
+
+        if (!$asistente) {
+            return response()->json([
+                'mensaje' => 'Asistente administrativo no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Asistente administrativo actualizado correctamente.',
+            'datos' => $asistente
+        ], 200);
+    }
+
+    public function destroy(int $id): JsonResponse
+    {
+        $eliminado = $this->asistenteService->delete(
+            $id
+        );
+
+        if (!$eliminado) {
+            return response()->json([
+                'mensaje' => 'Asistente administrativo no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Asistente administrativo eliminado correctamente.'
+        ], 200);
+    }
+}
+
+========== C:\Users\APRENDIZ.DESKTOP-16JF3VT\Documents\Educapp_Proyecto\app\Http\Controllers\BarrioController.php ==========
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\BarrioRequest;
+use App\Services\BarrioService;
+use Illuminate\Http\JsonResponse;
+
+class BarrioController extends Controller
+{
+    protected BarrioService $barrioService;
+
+    public function __construct(
+        BarrioService $barrioService
+    ) {
+        $this->barrioService = $barrioService;
+    }
+
+    public function index(): JsonResponse
+    {
+        $barrios = $this->barrioService->getAll();
+
+        return response()->json([
+            'mensaje' => 'Barrios obtenidos correctamente.',
+            'datos' => $barrios
+        ], 200);
+    }
+
+    public function show(int $id): JsonResponse
+    {
+        $barrio = $this->barrioService->findById($id);
+
+        if (!$barrio) {
+            return response()->json([
+                'mensaje' => 'Barrio no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Barrio obtenido correctamente.',
+            'datos' => $barrio
+        ], 200);
+    }
+
+    public function store(BarrioRequest $request): JsonResponse
+    {
+        $barrio = $this->barrioService->create(
+            $request->validated()
+        );
+
+        return response()->json([
+            'mensaje' => 'Barrio creado correctamente.',
+            'datos' => $barrio
+        ], 201);
+    }
+
+    public function update(
+        BarrioRequest $request,
+        int $id
+    ): JsonResponse {
+        $barrio = $this->barrioService->update(
+            $id,
+            $request->validated()
+        );
+
+        if (!$barrio) {
+            return response()->json([
+                'mensaje' => 'Barrio no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Barrio actualizado correctamente.',
+            'datos' => $barrio
+        ], 200);
+    }
+
+    public function destroy(int $id): JsonResponse
+    {
+        $eliminado = $this->barrioService->delete($id);
+
+        if (!$eliminado) {
+            return response()->json([
+                'mensaje' => 'Barrio no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Barrio eliminado correctamente.'
+        ], 200);
+    }
+}
+
+========== C:\Users\APRENDIZ.DESKTOP-16JF3VT\Documents\Educapp_Proyecto\app\Http\Controllers\BoletinController.php ==========
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\BoletinRequest;
+use App\Services\BoletinService;
+use Illuminate\Http\JsonResponse;
+
+class BoletinController extends Controller
+{
+    protected BoletinService $boletinService;
+
+    public function __construct(
+        BoletinService $boletinService
+    ) {
+        $this->boletinService = $boletinService;
+    }
+
+    public function index(): JsonResponse
+    {
+        $boletines = $this->boletinService->getAll();
+
+        return response()->json([
+            'mensaje' => 'Boletines obtenidos correctamente.',
+            'datos' => $boletines
+        ], 200);
+    }
+
+    public function show(int $id): JsonResponse
+    {
+        $boletin = $this->boletinService->findById(
+            $id
+        );
+
+        if (!$boletin) {
+            return response()->json([
+                'mensaje' => 'BoletÃ­n no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'BoletÃ­n obtenido correctamente.',
+            'datos' => $boletin
+        ], 200);
+    }
+
+    public function store(
+        BoletinRequest $request
+    ): JsonResponse {
+        $boletin = $this->boletinService->create(
+            $request->validated()
+        );
+
+        return response()->json([
+            'mensaje' => 'BoletÃ­n creado correctamente.',
+            'datos' => $boletin
+        ], 201);
+    }
+
+    public function update(
+        BoletinRequest $request,
+        int $id
+    ): JsonResponse {
+        $boletin = $this->boletinService->update(
+            $id,
+            $request->validated()
+        );
+
+        if (!$boletin) {
+            return response()->json([
+                'mensaje' => 'BoletÃ­n no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'BoletÃ­n actualizado correctamente.',
+            'datos' => $boletin
+        ], 200);
+    }
+
+    public function destroy(int $id): JsonResponse
+    {
+        $eliminado = $this->boletinService->delete(
+            $id
+        );
+
+        if (!$eliminado) {
+            return response()->json([
+                'mensaje' => 'BoletÃ­n no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'BoletÃ­n eliminado correctamente.'
+        ], 200);
+    }
+}
+
+========== C:\Users\APRENDIZ.DESKTOP-16JF3VT\Documents\Educapp_Proyecto\app\Http\Controllers\CertificadoController.php ==========
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\CertificadoRequest;
+use App\Services\CertificadoService;
+use Illuminate\Http\JsonResponse;
+
+class CertificadoController extends Controller
+{
+    protected CertificadoService $certificadoService;
+
+    public function __construct(
+        CertificadoService $certificadoService
+    ) {
+        $this->certificadoService = $certificadoService;
+    }
+
+    public function index(): JsonResponse
+    {
+        $certificados = $this->certificadoService->getAll();
+
+        return response()->json([
+            'mensaje' => 'Certificados obtenidos correctamente.',
+            'datos' => $certificados
+        ], 200);
+    }
+
+    public function show(int $id): JsonResponse
+    {
+        $certificado = $this->certificadoService->findById(
+            $id
+        );
+
+        if (!$certificado) {
+            return response()->json([
+                'mensaje' => 'Certificado no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Certificado obtenido correctamente.',
+            'datos' => $certificado
+        ], 200);
+    }
+
+    public function store(
+        CertificadoRequest $request
+    ): JsonResponse {
+        $certificado = $this->certificadoService->create(
+            $request->validated()
+        );
+
+        return response()->json([
+            'mensaje' => 'Certificado creado correctamente.',
+            'datos' => $certificado
+        ], 201);
+    }
+
+    public function update(
+        CertificadoRequest $request,
+        int $id
+    ): JsonResponse {
+        $certificado = $this->certificadoService->update(
+            $id,
+            $request->validated()
+        );
+
+        if (!$certificado) {
+            return response()->json([
+                'mensaje' => 'Certificado no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Certificado actualizado correctamente.',
+            'datos' => $certificado
+        ], 200);
+    }
+
+    public function destroy(int $id): JsonResponse
+    {
+        $eliminado = $this->certificadoService->delete(
+            $id
+        );
+
+        if (!$eliminado) {
+            return response()->json([
+                'mensaje' => 'Certificado no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Certificado eliminado correctamente.'
+        ], 200);
+    }
+}
+
+========== C:\Users\APRENDIZ.DESKTOP-16JF3VT\Documents\Educapp_Proyecto\app\Http\Controllers\Controller.php ==========
+<?php
+
+namespace App\Http\Controllers;
+
+abstract class Controller
+{
+    //
+}
+
+========== C:\Users\APRENDIZ.DESKTOP-16JF3VT\Documents\Educapp_Proyecto\app\Http\Controllers\CursoController.php ==========
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\CursoRequest;
+use App\Services\CursoService;
+use Illuminate\Http\JsonResponse;
+
+class CursoController extends Controller
+{
+    protected CursoService $cursoService;
+
+    public function __construct(
+        CursoService $cursoService
+    ) {
+        $this->cursoService = $cursoService;
+    }
+
+    public function index(): JsonResponse
+    {
+        $cursos = $this->cursoService->getAll();
+
+        return response()->json([
+            'mensaje' => 'Cursos obtenidos correctamente.',
+            'datos' => $cursos
+        ], 200);
+    }
+
+    public function show(int $id): JsonResponse
+    {
+        $curso = $this->cursoService->findById($id);
+
+        if (!$curso) {
+            return response()->json([
+                'mensaje' => 'Curso no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Curso obtenido correctamente.',
+            'datos' => $curso
+        ], 200);
+    }
+
+    public function store(
+        CursoRequest $request
+    ): JsonResponse {
+        $curso = $this->cursoService->create(
+            $request->validated()
+        );
+
+        return response()->json([
+            'mensaje' => 'Curso creado correctamente.',
+            'datos' => $curso
+        ], 201);
+    }
+
+    public function update(
+        CursoRequest $request,
+        int $id
+    ): JsonResponse {
+        $curso = $this->cursoService->update(
+            $id,
+            $request->validated()
+        );
+
+        if (!$curso) {
+            return response()->json([
+                'mensaje' => 'Curso no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Curso actualizado correctamente.',
+            'datos' => $curso
+        ], 200);
+    }
+
+    public function destroy(int $id): JsonResponse
+    {
+        $eliminado = $this->cursoService->delete($id);
+
+        if (!$eliminado) {
+            return response()->json([
+                'mensaje' => 'Curso no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Curso eliminado correctamente.'
+        ], 200);
+    }
+}
+
+========== C:\Users\APRENDIZ.DESKTOP-16JF3VT\Documents\Educapp_Proyecto\app\Http\Controllers\DetalleBoletinController.php ==========
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\DetalleBoletinRequest;
+use App\Services\DetalleBoletinService;
+use Illuminate\Http\JsonResponse;
+
+class DetalleBoletinController extends Controller
+{
+    protected DetalleBoletinService $detalleService;
+
+    public function __construct(
+        DetalleBoletinService $detalleService
+    ) {
+        $this->detalleService = $detalleService;
+    }
+
+    public function index(): JsonResponse
+    {
+        $detalles = $this->detalleService->getAll();
+
+        return response()->json([
+            'mensaje' => 'Detalles de boletÃ­n obtenidos correctamente.',
+            'datos' => $detalles
+        ], 200);
+    }
+
+    public function show(int $id): JsonResponse
+    {
+        $detalle = $this->detalleService->findById(
+            $id
+        );
+
+        if (!$detalle) {
+            return response()->json([
+                'mensaje' => 'Detalle de boletÃ­n no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Detalle obtenido correctamente.',
+            'datos' => $detalle
+        ], 200);
+    }
+
+    public function store(
+        DetalleBoletinRequest $request
+    ): JsonResponse {
+        $detalle = $this->detalleService->create(
+            $request->validated()
+        );
+
+        return response()->json([
+            'mensaje' => 'Detalle de boletÃ­n creado correctamente.',
+            'datos' => $detalle
+        ], 201);
+    }
+
+    public function update(
+        DetalleBoletinRequest $request,
+        int $id
+    ): JsonResponse {
+        $detalle = $this->detalleService->update(
+            $id,
+            $request->validated()
+        );
+
+        if (!$detalle) {
+            return response()->json([
+                'mensaje' => 'Detalle de boletÃ­n no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Detalle actualizado correctamente.',
+            'datos' => $detalle
+        ], 200);
+    }
+
+    public function destroy(int $id): JsonResponse
+    {
+        $eliminado = $this->detalleService->delete(
+            $id
+        );
+
+        if (!$eliminado) {
+            return response()->json([
+                'mensaje' => 'Detalle de boletÃ­n no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Detalle eliminado correctamente.'
+        ], 200);
+    }
+
+    public function porBoletin(
+        int $idBoletin
+    ): JsonResponse {
+        $detalles = $this->detalleService->getByBoletin(
+            $idBoletin
+        );
+
+        return response()->json([
+            'mensaje' => 'Detalles del boletÃ­n obtenidos correctamente.',
+            'datos' => $detalles
+        ], 200);
+    }
+}
+
+========== C:\Users\APRENDIZ.DESKTOP-16JF3VT\Documents\Educapp_Proyecto\app\Http\Controllers\DocenteController.php ==========
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\DocenteRequest;
+use App\Services\DocenteService;
+use Illuminate\Http\JsonResponse;
+
+class DocenteController extends Controller
+{
+    protected DocenteService $docenteService;
+
+    public function __construct(
+        DocenteService $docenteService
+    ) {
+        $this->docenteService = $docenteService;
+    }
+
+    public function index(): JsonResponse
+    {
+        $docentes = $this->docenteService->getAll();
+
+        return response()->json([
+            'mensaje' => 'Docentes obtenidos correctamente.',
+            'datos' => $docentes
+        ], 200);
+    }
+
+    public function show(int $id): JsonResponse
+    {
+        $docente = $this->docenteService->findById($id);
+
+        if (!$docente) {
+            return response()->json([
+                'mensaje' => 'Docente no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Docente obtenido correctamente.',
+            'datos' => $docente
+        ], 200);
+    }
+
+    public function store(
+        DocenteRequest $request
+    ): JsonResponse {
+        $docente = $this->docenteService->create(
+            $request->validated()
+        );
+
+        return response()->json([
+            'mensaje' => 'Docente creado correctamente.',
+            'datos' => $docente
+        ], 201);
+    }
+
+    public function update(
+        DocenteRequest $request,
+        int $id
+    ): JsonResponse {
+        $docente = $this->docenteService->update(
+            $id,
+            $request->validated()
+        );
+
+        if (!$docente) {
+            return response()->json([
+                'mensaje' => 'Docente no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Docente actualizado correctamente.',
+            'datos' => $docente
+        ], 200);
+    }
+
+    public function destroy(int $id): JsonResponse
+    {
+        $eliminado = $this->docenteService->delete($id);
+
+        if (!$eliminado) {
+            return response()->json([
+                'mensaje' => 'Docente no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Docente eliminado correctamente.'
+        ], 200);
+    }
+}
+
+========== C:\Users\APRENDIZ.DESKTOP-16JF3VT\Documents\Educapp_Proyecto\app\Http\Controllers\EPSController.php ==========
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Controllers\Concerns\AuthorizesWithPermissions;
+use App\Http\Requests\EPSRequest;
+use App\Services\EPSService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Routing\Controllers\HasMiddleware;
+
+class EPSController extends Controller implements HasMiddleware
+{
+
+    use AuthorizesWithPermissions;
+
+    protected EPSService $epsService;
+
+    public function __construct(EPSService $epsService)
+    {
+        $this->epsService = $epsService;
+    }
+
+    public function index(): JsonResponse
+    {
+        $eps = $this->epsService->getAll();
+
+        return response()->json([
+            'mensaje' => 'EPS obtenidas correctamente.',
+            'datos' => $eps
+        ], 200);
+    }
+
+    public function show(int $id): JsonResponse
+    {
+        $eps = $this->epsService->findById($id);
+
+        if (!$eps) {
+            return response()->json([
+                'mensaje' => 'EPS no encontrada.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'EPS obtenida correctamente.',
+            'datos' => $eps
+        ], 200);
+    }
+
+    public function store(EPSRequest $request): JsonResponse
+    {
+        $eps = $this->epsService->create(
+            $request->validated()
+        );
+
+        return response()->json([
+            'mensaje' => 'EPS creada correctamente.',
+            'datos' => $eps
+        ], 201);
+    }
+
+    public function update(EPSRequest $request, int $id): JsonResponse
+    {
+        $eps = $this->epsService->update(
+            $id,
+            $request->validated()
+        );
+
+        if (!$eps) {
+            return response()->json([
+                'mensaje' => 'EPS no encontrada.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'EPS actualizada correctamente.',
+            'datos' => $eps
+        ], 200);
+    }
+
+    public function destroy(int $id): JsonResponse
+    {
+        $eliminado = $this->epsService->delete($id);
+
+        if (!$eliminado) {
+            return response()->json([
+                'mensaje' => 'EPS no encontrada.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'EPS eliminada correctamente.'
+        ], 200);
+    }
+}
+
+========== C:\Users\APRENDIZ.DESKTOP-16JF3VT\Documents\Educapp_Proyecto\app\Http\Controllers\EstudianteController.php ==========
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\EstudianteRequest;
+use App\Services\EstudianteService;
+use Illuminate\Http\JsonResponse;
+
+class EstudianteController extends Controller
+{
+    protected EstudianteService $estudianteService;
+
+    public function __construct(
+        EstudianteService $estudianteService
+    ) {
+        $this->estudianteService = $estudianteService;
+    }
+
+    public function index(): JsonResponse
+    {
+        $estudiantes = $this->estudianteService->getAll();
+
+        return response()->json([
+            'mensaje' => 'Estudiantes obtenidos correctamente.',
+            'datos' => $estudiantes
+        ], 200);
+    }
+
+    public function show(int $id): JsonResponse
+    {
+        $estudiante = $this->estudianteService->findById(
+            $id
+        );
+
+        if (!$estudiante) {
+            return response()->json([
+                'mensaje' => 'Estudiante no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Estudiante obtenido correctamente.',
+            'datos' => $estudiante
+        ], 200);
+    }
+
+    public function store(
+        EstudianteRequest $request
+    ): JsonResponse {
+        $estudiante = $this->estudianteService->create(
+            $request->validated()
+        );
+
+        return response()->json([
+            'mensaje' => 'Estudiante creado correctamente.',
+            'datos' => $estudiante
+        ], 201);
+    }
+
+    public function update(
+        EstudianteRequest $request,
+        int $id
+    ): JsonResponse {
+        $estudiante = $this->estudianteService->update(
+            $id,
+            $request->validated()
+        );
+
+        if (!$estudiante) {
+            return response()->json([
+                'mensaje' => 'Estudiante no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Estudiante actualizado correctamente.',
+            'datos' => $estudiante
+        ], 200);
+    }
+
+    public function destroy(int $id): JsonResponse
+    {
+        $eliminado = $this->estudianteService->delete(
+            $id
+        );
+
+        if (!$eliminado) {
+            return response()->json([
+                'mensaje' => 'Estudiante no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Estudiante eliminado correctamente.'
+        ], 200);
+    }
+}
+
+========== C:\Users\APRENDIZ.DESKTOP-16JF3VT\Documents\Educapp_Proyecto\app\Http\Controllers\GradoController.php ==========
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\GradoRequest;
+use App\Services\GradoService;
+use Illuminate\Http\JsonResponse;
+
+class GradoController extends Controller
+{
+    protected GradoService $gradoService;
+
+    public function __construct(
+        GradoService $gradoService
+    ) {
+        $this->gradoService = $gradoService;
+    }
+
+    public function index(): JsonResponse
+    {
+        $grados = $this->gradoService->getAll();
+
+        return response()->json([
+            'mensaje' => 'Grados obtenidos correctamente.',
+            'datos' => $grados
+        ], 200);
+    }
+
+    public function show(int $id): JsonResponse
+    {
+        $grado = $this->gradoService->findById($id);
+
+        if (!$grado) {
+            return response()->json([
+                'mensaje' => 'Grado no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Grado obtenido correctamente.',
+            'datos' => $grado
+        ], 200);
+    }
+
+    public function store(
+        GradoRequest $request
+    ): JsonResponse {
+        $grado = $this->gradoService->create(
+            $request->validated()
+        );
+
+        return response()->json([
+            'mensaje' => 'Grado creado correctamente.',
+            'datos' => $grado
+        ], 201);
+    }
+
+    public function update(
+        GradoRequest $request,
+        int $id
+    ): JsonResponse {
+        $grado = $this->gradoService->update(
+            $id,
+            $request->validated()
+        );
+
+        if (!$grado) {
+            return response()->json([
+                'mensaje' => 'Grado no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Grado actualizado correctamente.',
+            'datos' => $grado
+        ], 200);
+    }
+
+    public function destroy(int $id): JsonResponse
+    {
+        $eliminado = $this->gradoService->delete($id);
+
+        if (!$eliminado) {
+            return response()->json([
+                'mensaje' => 'Grado no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Grado eliminado correctamente.'
+        ], 200);
+    }
+}
+
+========== C:\Users\APRENDIZ.DESKTOP-16JF3VT\Documents\Educapp_Proyecto\app\Http\Controllers\GrupoSanguineoController.php ==========
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\GrupoSanguineoRequest;
+use App\Services\GrupoSanguineoService;
+use Illuminate\Http\JsonResponse;
+
+class GrupoSanguineoController extends Controller
+{
+    protected GrupoSanguineoService $grupoSanguineoService;
+
+    public function __construct(
+        GrupoSanguineoService $grupoSanguineoService
+    ) {
+        $this->grupoSanguineoService = $grupoSanguineoService;
+    }
+
+    public function index(): JsonResponse
+    {
+        $grupos = $this->grupoSanguineoService->getAll();
+
+        return response()->json([
+            'mensaje' => 'Grupos sanguÃ­neos obtenidos correctamente.',
+            'datos' => $grupos
+        ], 200);
+    }
+
+    public function show(int $id): JsonResponse
+    {
+        $grupo = $this->grupoSanguineoService->findById($id);
+
+        if (!$grupo) {
+            return response()->json([
+                'mensaje' => 'Grupo sanguÃ­neo no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Grupo sanguÃ­neo obtenido correctamente.',
+            'datos' => $grupo
+        ], 200);
+    }
+
+    public function store(
+        GrupoSanguineoRequest $request
+    ): JsonResponse {
+        $grupo = $this->grupoSanguineoService->create(
+            $request->validated()
+        );
+
+        return response()->json([
+            'mensaje' => 'Grupo sanguÃ­neo creado correctamente.',
+            'datos' => $grupo
+        ], 201);
+    }
+
+    public function update(
+        GrupoSanguineoRequest $request,
+        int $id
+    ): JsonResponse {
+        $grupo = $this->grupoSanguineoService->update(
+            $id,
+            $request->validated()
+        );
+
+        if (!$grupo) {
+            return response()->json([
+                'mensaje' => 'Grupo sanguÃ­neo no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Grupo sanguÃ­neo actualizado correctamente.',
+            'datos' => $grupo
+        ], 200);
+    }
+
+    public function destroy(int $id): JsonResponse
+    {
+        $eliminado = $this->grupoSanguineoService->delete($id);
+
+        if (!$eliminado) {
+            return response()->json([
+                'mensaje' => 'Grupo sanguÃ­neo no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Grupo sanguÃ­neo eliminado correctamente.'
+        ], 200);
+    }
+}
+
+========== C:\Users\APRENDIZ.DESKTOP-16JF3VT\Documents\Educapp_Proyecto\app\Http\Controllers\HorarioAcademicoController.php ==========
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\HorarioAcademicoRequest;
+use App\Services\HorarioAcademicoService;
+use Illuminate\Http\JsonResponse;
+
+class HorarioAcademicoController extends Controller
+{
+    protected HorarioAcademicoService $horarioService;
+
+    public function __construct(
+        HorarioAcademicoService $horarioService
+    ) {
+        $this->horarioService = $horarioService;
+    }
+
+    public function index(): JsonResponse
+    {
+        $horarios = $this->horarioService->getAll();
+
+        return response()->json([
+            'mensaje' => 'Horarios obtenidos correctamente.',
+            'datos' => $horarios
+        ], 200);
+    }
+
+    public function show(int $id): JsonResponse
+    {
+        $horario = $this->horarioService->findById(
+            $id
+        );
+
+        if (!$horario) {
+            return response()->json([
+                'mensaje' => 'Horario no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Horario obtenido correctamente.',
+            'datos' => $horario
+        ], 200);
+    }
+
+    public function store(
+        HorarioAcademicoRequest $request
+    ): JsonResponse {
+        $horario = $this->horarioService->create(
+            $request->validated()
+        );
+
+        return response()->json([
+            'mensaje' => 'Horario creado correctamente.',
+            'datos' => $horario
+        ], 201);
+    }
+
+    public function update(
+        HorarioAcademicoRequest $request,
+        int $id
+    ): JsonResponse {
+        $horario = $this->horarioService->update(
+            $id,
+            $request->validated()
+        );
+
+        if (!$horario) {
+            return response()->json([
+                'mensaje' => 'Horario no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Horario actualizado correctamente.',
+            'datos' => $horario
+        ], 200);
+    }
+
+    public function destroy(int $id): JsonResponse
+    {
+        $eliminado = $this->horarioService->delete(
+            $id
+        );
+
+        if (!$eliminado) {
+            return response()->json([
+                'mensaje' => 'Horario no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Horario eliminado correctamente.'
+        ], 200);
+    }
+
+    public function porCurso(int $idCurso): JsonResponse
+    {
+        $horarios = $this->horarioService->getByCurso(
+            $idCurso
+        );
+
+        return response()->json([
+            'mensaje' => 'Horarios del curso obtenidos correctamente.',
+            'datos' => $horarios
+        ], 200);
+    }
+}
+
+========== C:\Users\APRENDIZ.DESKTOP-16JF3VT\Documents\Educapp_Proyecto\app\Http\Controllers\LocalidadController.php ==========
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\LocalidadRequest;
+use App\Services\LocalidadService;
+use Illuminate\Http\JsonResponse;
+
+class LocalidadController extends Controller
+{
+    protected LocalidadService $localidadService;
+
+    public function __construct(LocalidadService $localidadService)
+    {
+        $this->localidadService = $localidadService;
+    }
+
+    public function index(): JsonResponse
+    {
+        $localidades = $this->localidadService->getAll();
+
+        return response()->json([
+            'mensaje' => 'Localidades obtenidas correctamente.',
+            'datos' => $localidades
+        ], 200);
+    }
+
+    public function show(int $id): JsonResponse
+    {
+        $localidad = $this->localidadService->findById($id);
+
+        if (!$localidad) {
+            return response()->json([
+                'mensaje' => 'Localidad no encontrada.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Localidad obtenida correctamente.',
+            'datos' => $localidad
+        ], 200);
+    }
+
+    public function store(LocalidadRequest $request): JsonResponse
+    {
+        $localidad = $this->localidadService->create(
+            $request->validated()
+        );
+
+        return response()->json([
+            'mensaje' => 'Localidad creada correctamente.',
+            'datos' => $localidad
+        ], 201);
+    }
+
+    public function update(LocalidadRequest $request, int $id): JsonResponse
+    {
+        $localidad = $this->localidadService->update(
+            $id,
+            $request->validated()
+        );
+
+        if (!$localidad) {
+            return response()->json([
+                'mensaje' => 'Localidad no encontrada.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Localidad actualizada correctamente.',
+            'datos' => $localidad
+        ], 200);
+    }
+
+    public function destroy(int $id): JsonResponse
+    {
+        $eliminado = $this->localidadService->delete($id);
+
+        if (!$eliminado) {
+            return response()->json([
+                'mensaje' => 'Localidad no encontrada.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Localidad eliminada correctamente.'
+        ], 200);
+    }
+}
+
+========== C:\Users\APRENDIZ.DESKTOP-16JF3VT\Documents\Educapp_Proyecto\app\Http\Controllers\MateriaController.php ==========
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\MateriaRequest;
+use App\Services\MateriaService;
+use Illuminate\Http\JsonResponse;
+
+class MateriaController extends Controller
+{
+    protected MateriaService $materiaService;
+
+    public function __construct(
+        MateriaService $materiaService
+    ) {
+        $this->materiaService = $materiaService;
+    }
+
+    public function index(): JsonResponse
+    {
+        $materias = $this->materiaService->getAll();
+
+        return response()->json([
+            'mensaje' => 'Materias obtenidas correctamente.',
+            'datos' => $materias
+        ], 200);
+    }
+
+    public function show(int $id): JsonResponse
+    {
+        $materia = $this->materiaService->findById($id);
+
+        if (!$materia) {
+            return response()->json([
+                'mensaje' => 'Materia no encontrada.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Materia obtenida correctamente.',
+            'datos' => $materia
+        ], 200);
+    }
+
+    public function store(
+        MateriaRequest $request
+    ): JsonResponse {
+        $materia = $this->materiaService->create(
+            $request->validated()
+        );
+
+        return response()->json([
+            'mensaje' => 'Materia creada correctamente.',
+            'datos' => $materia
+        ], 201);
+    }
+
+    public function update(
+        MateriaRequest $request,
+        int $id
+    ): JsonResponse {
+        $materia = $this->materiaService->update(
+            $id,
+            $request->validated()
+        );
+
+        if (!$materia) {
+            return response()->json([
+                'mensaje' => 'Materia no encontrada.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Materia actualizada correctamente.',
+            'datos' => $materia
+        ], 200);
+    }
+
+    public function destroy(int $id): JsonResponse
+    {
+        $eliminado = $this->materiaService->delete(
+            $id
+        );
+
+        if (!$eliminado) {
+            return response()->json([
+                'mensaje' => 'Materia no encontrada.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Materia eliminada correctamente.'
+        ], 200);
+    }
+}
+
+========== C:\Users\APRENDIZ.DESKTOP-16JF3VT\Documents\Educapp_Proyecto\app\Http\Controllers\MatriculaController.php ==========
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\MatriculaRequest;
+use App\Services\MatriculaService;
+use Illuminate\Http\JsonResponse;
+
+class MatriculaController extends Controller
+{
+    protected MatriculaService $matriculaService;
+
+    public function __construct(
+        MatriculaService $matriculaService
+    ) {
+        $this->matriculaService = $matriculaService;
+    }
+
+    public function index(): JsonResponse
+    {
+        $matriculas = $this->matriculaService->getAll();
+
+        return response()->json([
+            'mensaje' => 'MatrÃ­culas obtenidas correctamente.',
+            'datos' => $matriculas
+        ], 200);
+    }
+
+    public function show(int $id): JsonResponse
+    {
+        $matricula = $this->matriculaService->findById(
+            $id
+        );
+
+        if (!$matricula) {
+            return response()->json([
+                'mensaje' => 'MatrÃ­cula no encontrada.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'MatrÃ­cula obtenida correctamente.',
+            'datos' => $matricula
+        ], 200);
+    }
+
+    public function store(
+        MatriculaRequest $request
+    ): JsonResponse {
+        $matricula = $this->matriculaService->create(
+            $request->validated()
+        );
+
+        return response()->json([
+            'mensaje' => 'MatrÃ­cula creada correctamente.',
+            'datos' => $matricula
+        ], 201);
+    }
+
+    public function update(
+        MatriculaRequest $request,
+        int $id
+    ): JsonResponse {
+        $matricula = $this->matriculaService->update(
+            $id,
+            $request->validated()
+        );
+
+        if (!$matricula) {
+            return response()->json([
+                'mensaje' => 'MatrÃ­cula no encontrada.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'MatrÃ­cula actualizada correctamente.',
+            'datos' => $matricula
+        ], 200);
+    }
+
+    public function destroy(int $id): JsonResponse
+    {
+        $eliminado = $this->matriculaService->delete(
+            $id
+        );
+
+        if (!$eliminado) {
+            return response()->json([
+                'mensaje' => 'MatrÃ­cula no encontrada.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'MatrÃ­cula eliminada correctamente.'
+        ], 200);
+    }
+}
+
+========== C:\Users\APRENDIZ.DESKTOP-16JF3VT\Documents\Educapp_Proyecto\app\Http\Controllers\NotaController.php ==========
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\NotaRequest;
+use App\Services\NotaService;
+use Illuminate\Http\JsonResponse;
+
+class NotaController extends Controller
+{
+    protected NotaService $notaService;
+
+    public function __construct(
+        NotaService $notaService
+    ) {
+        $this->notaService = $notaService;
+    }
+
+    public function index(): JsonResponse
+    {
+        $notas = $this->notaService->getAll();
+
+        return response()->json([
+            'mensaje' => 'Notas obtenidas correctamente.',
+            'datos' => $notas
+        ], 200);
+    }
+
+    public function show(int $id): JsonResponse
+    {
+        $nota = $this->notaService->findById($id);
+
+        if (!$nota) {
+            return response()->json([
+                'mensaje' => 'Nota no encontrada.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Nota obtenida correctamente.',
+            'datos' => $nota
+        ], 200);
+    }
+
+    public function store(NotaRequest $request): JsonResponse
+    {
+        $nota = $this->notaService->create(
+            $request->validated()
+        );
+
+        return response()->json([
+            'mensaje' => 'Nota creada correctamente.',
+            'datos' => $nota
+        ], 201);
+    }
+
+    public function update(
+        NotaRequest $request,
+        int $id
+    ): JsonResponse {
+        $nota = $this->notaService->update(
+            $id,
+            $request->validated()
+        );
+
+        if (!$nota) {
+            return response()->json([
+                'mensaje' => 'Nota no encontrada.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Nota actualizada correctamente.',
+            'datos' => $nota
+        ], 200);
+    }
+
+    public function destroy(int $id): JsonResponse
+    {
+        $eliminado = $this->notaService->delete($id);
+
+        if (!$eliminado) {
+            return response()->json([
+                'mensaje' => 'Nota no encontrada.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Nota eliminada correctamente.'
+        ], 200);
+    }
+}
+
+
+========== C:\Users\APRENDIZ.DESKTOP-16JF3VT\Documents\Educapp_Proyecto\app\Http\Controllers\ProfesionController.php ==========
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\ProfesionRequest;
+use App\Services\ProfesionService;
+use Illuminate\Http\JsonResponse;
+
+class ProfesionController extends Controller
+{
+    protected ProfesionService $profesionService;
+
+    public function __construct(
+        ProfesionService $profesionService
+    ) {
+        $this->profesionService = $profesionService;
+    }
+
+    public function index(): JsonResponse
+    {
+        $profesiones = $this->profesionService->getAll();
+
+        return response()->json([
+            'mensaje' => 'Profesiones obtenidas correctamente.',
+            'datos' => $profesiones
+        ], 200);
+    }
+
+    public function show(int $id): JsonResponse
+    {
+        $profesion = $this->profesionService->findById($id);
+
+        if (!$profesion) {
+            return response()->json([
+                'mensaje' => 'ProfesiÃ³n no encontrada.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'ProfesiÃ³n obtenida correctamente.',
+            'datos' => $profesion
+        ], 200);
+    }
+
+    public function store(
+        ProfesionRequest $request
+    ): JsonResponse {
+        $profesion = $this->profesionService->create(
+            $request->validated()
+        );
+
+        return response()->json([
+            'mensaje' => 'ProfesiÃ³n creada correctamente.',
+            'datos' => $profesion
+        ], 201);
+    }
+
+    public function update(
+        ProfesionRequest $request,
+        int $id
+    ): JsonResponse {
+        $profesion = $this->profesionService->update(
+            $id,
+            $request->validated()
+        );
+
+        if (!$profesion) {
+            return response()->json([
+                'mensaje' => 'ProfesiÃ³n no encontrada.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'ProfesiÃ³n actualizada correctamente.',
+            'datos' => $profesion
+        ], 200);
+    }
+
+    public function destroy(int $id): JsonResponse
+    {
+        $eliminado = $this->profesionService->delete($id);
+
+        if (!$eliminado) {
+            return response()->json([
+                'mensaje' => 'ProfesiÃ³n no encontrada.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'ProfesiÃ³n eliminada correctamente.'
+        ], 200);
+    }
+}
+
+========== C:\Users\APRENDIZ.DESKTOP-16JF3VT\Documents\Educapp_Proyecto\app\Http\Controllers\RectorController.php ==========
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\RectorRequest;
+use App\Services\RectorService;
+use Illuminate\Http\JsonResponse;
+
+class RectorController extends Controller
+{
+    protected RectorService $rectorService;
+
+    public function __construct(
+        RectorService $rectorService
+    ) {
+        $this->rectorService = $rectorService;
+    }
+
+    public function index(): JsonResponse
+    {
+        $rectores = $this->rectorService->getAll();
+
+        return response()->json([
+            'mensaje' => 'Rectores obtenidos correctamente.',
+            'datos' => $rectores
+        ], 200);
+    }
+
+    public function show(int $id): JsonResponse
+    {
+        $rector = $this->rectorService->findById($id);
+
+        if (!$rector) {
+            return response()->json([
+                'mensaje' => 'Rector no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Rector obtenido correctamente.',
+            'datos' => $rector
+        ], 200);
+    }
+
+    public function store(
+        RectorRequest $request
+    ): JsonResponse {
+        $rector = $this->rectorService->create(
+            $request->validated()
+        );
+
+        return response()->json([
+            'mensaje' => 'Rector creado correctamente.',
+            'datos' => $rector
+        ], 201);
+    }
+
+    public function update(
+        RectorRequest $request,
+        int $id
+    ): JsonResponse {
+        $rector = $this->rectorService->update(
+            $id,
+            $request->validated()
+        );
+
+        if (!$rector) {
+            return response()->json([
+                'mensaje' => 'Rector no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Rector actualizado correctamente.',
+            'datos' => $rector
+        ], 200);
+    }
+
+    public function destroy(int $id): JsonResponse
+    {
+        $eliminado = $this->rectorService->delete($id);
+
+        if (!$eliminado) {
+            return response()->json([
+                'mensaje' => 'Rector no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Rector eliminado correctamente.'
+        ], 200);
+    }
+}
+
+========== C:\Users\APRENDIZ.DESKTOP-16JF3VT\Documents\Educapp_Proyecto\app\Http\Controllers\RolController.php ==========
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\RolRequest;
+use App\Services\RolService;
+use Illuminate\Http\JsonResponse;
+
+class RolController extends Controller
+{
+    protected RolService $rolService;
+
+    public function __construct(RolService $rolService)
+    {
+        $this->rolService = $rolService;
+    }
+
+    public function index(): JsonResponse
+    {
+        $roles = $this->rolService->getAll();
+
+        return response()->json([
+            'mensaje' => 'Roles obtenidos correctamente.',
+            'datos' => $roles
+        ], 200);
+    }
+
+    public function show(int $id): JsonResponse
+    {
+        $rol = $this->rolService->findById($id);
+
+        if (!$rol) {
+            return response()->json([
+                'mensaje' => 'Rol no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Rol obtenido correctamente.',
+            'datos' => $rol
+        ], 200);
+    }
+
+    public function store(RolRequest $request): JsonResponse
+    {
+        $rol = $this->rolService->create(
+            $request->validated()
+        );
+
+        return response()->json([
+            'mensaje' => 'Rol creado correctamente.',
+            'datos' => $rol
+        ], 201);
+    }
+
+    public function update(RolRequest $request, int $id): JsonResponse
+    {
+        $rol = $this->rolService->update(
+            $id,
+            $request->validated()
+        );
+
+        if (!$rol) {
+            return response()->json([
+                'mensaje' => 'Rol no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Rol actualizado correctamente.',
+            'datos' => $rol
+        ], 200);
+    }
+
+    public function destroy(int $id): JsonResponse
+    {
+        $eliminado = $this->rolService->delete($id);
+
+        if (!$eliminado) {
+            return response()->json([
+                'mensaje' => 'Rol no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Rol eliminado correctamente.'
+        ], 200);
+    }
+}
+
+========== C:\Users\APRENDIZ.DESKTOP-16JF3VT\Documents\Educapp_Proyecto\app\Http\Controllers\TipoCertificadoController.php ==========
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\TipoCertificadoRequest;
+use App\Services\TipoCertificadoService;
+use Illuminate\Http\JsonResponse;
+
+class TipoCertificadoController extends Controller
+{
+    protected TipoCertificadoService $tipoCertificadoService;
+
+    public function __construct(
+        TipoCertificadoService $tipoCertificadoService
+    ) {
+        $this->tipoCertificadoService = $tipoCertificadoService;
+    }
+
+    public function index(): JsonResponse
+    {
+        $tipos = $this->tipoCertificadoService->getAll();
+
+        return response()->json([
+            'mensaje' => 'Tipos de certificados obtenidos correctamente.',
+            'datos' => $tipos
+        ], 200);
+    }
+
+    public function show(int $id): JsonResponse
+    {
+        $tipo = $this->tipoCertificadoService->findById($id);
+
+        if (!$tipo) {
+            return response()->json([
+                'mensaje' => 'Tipo de certificado no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Tipo de certificado obtenido correctamente.',
+            'datos' => $tipo
+        ], 200);
+    }
+
+    public function store(
+        TipoCertificadoRequest $request
+    ): JsonResponse {
+        $tipo = $this->tipoCertificadoService->create(
+            $request->validated()
+        );
+
+        return response()->json([
+            'mensaje' => 'Tipo de certificado creado correctamente.',
+            'datos' => $tipo
+        ], 201);
+    }
+
+    public function update(
+        TipoCertificadoRequest $request,
+        int $id
+    ): JsonResponse {
+        $tipo = $this->tipoCertificadoService->update(
+            $id,
+            $request->validated()
+        );
+
+        if (!$tipo) {
+            return response()->json([
+                'mensaje' => 'Tipo de certificado no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Tipo de certificado actualizado correctamente.',
+            'datos' => $tipo
+        ], 200);
+    }
+
+    public function destroy(int $id): JsonResponse
+    {
+        $eliminado = $this->tipoCertificadoService->delete($id);
+
+        if (!$eliminado) {
+            return response()->json([
+                'mensaje' => 'Tipo de certificado no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Tipo de certificado eliminado correctamente.'
+        ], 200);
+    }
+}
+
+========== C:\Users\APRENDIZ.DESKTOP-16JF3VT\Documents\Educapp_Proyecto\app\Http\Controllers\UsuarioController.php ==========
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\UsuarioRequest;
+use App\Services\UsuarioService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+
+class UsuarioController extends Controller
+{
+    protected UsuarioService $usuarioService;
+
+    public function __construct(UsuarioService $usuarioService)
+    {
+        $this->usuarioService = $usuarioService;
+    }
+
+    public function index(): JsonResponse
+    {
+        $usuarios = $this->usuarioService->getAll();
+
+        return response()->json([
+            'mensaje' => 'Usuarios obtenidos correctamente.',
+            'datos' => $usuarios
+        ], 200);
+    }
+
+    public function show(int $id): JsonResponse
+    {
+        $usuario = $this->usuarioService->findById($id);
+
+        if (!$usuario) {
+            return response()->json([
+                'mensaje' => 'Usuario no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Usuario obtenido correctamente.',
+            'datos' => $usuario
+        ], 200);
+    }
+
+    public function store(UsuarioRequest $request): JsonResponse
+    {
+        $usuario = $this->usuarioService->create(
+            $request->validated()
+        );
+
+        return response()->json([
+            'mensaje' => 'Usuario creado correctamente.',
+            'datos' => $usuario
+        ], 201);
+    }
+
+    public function update(UsuarioRequest $request, int $id): JsonResponse
+    {
+        $usuario = $this->usuarioService->update(
+            $id,
+            $request->validated()
+        );
+
+        if (!$usuario) {
+            return response()->json([
+                'mensaje' => 'Usuario no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Usuario actualizado correctamente.',
+            'datos' => $usuario
+        ], 200);
+    }
+
+    public function destroy(int $id): JsonResponse
+    {
+        $eliminado = $this->usuarioService->delete($id);
+
+        if (!$eliminado) {
+            return response()->json([
+                'mensaje' => 'Usuario no encontrado.'
+            ], 404);
+        }
+
+        return response()->json([
+            'mensaje' => 'Usuario eliminado correctamente.'
+        ], 200);
+    }
+}
+
+========== C:\Users\APRENDIZ.DESKTOP-16JF3VT\Documents\Educapp_Proyecto\app\Http\Controllers\Api\ProductController.php ==========
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Concerns\AuthorizesWithPermissions;
+use App\Http\Controllers\Controller;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Routing\Controllers\HasMiddleware;
+
+class ProductController extends Controller implements HasMiddleware
+{
+    use AuthorizesWithPermissions;
+
+    public static function permissions(): array
+    {
+        return [
+            'index' => 'products.view',
+            'show' => 'products.view',
+            'export' => 'products.view', 
+            'store' => 'products.create',
+            'update' => 'products.create',
+            'destroy' => 'products.delete',
+        ];
+    }
+
+    public function index(): JsonResponse
+    {
+        return response()->json([
+            'message' => 'Listado de productos (permiso products.view).',
+            'data' => [
+                ['id' => 1, 'name' => 'Laptop'],
+                ['id' => 2, 'name' => 'Mouse'],
+            ],
+        ]);
+    }
+
+    public function store(): JsonResponse
+    {
+        return response()->json([
+            'message' => 'Producto creado (permiso products.create).',
+            'data' => [
+                'id' => 3,
+                'name' => 'Teclado',
+            ],
+        ], 201);
+    }
+
+    public function show(int $product): JsonResponse
+    {
+        return response()->json([
+            'message' => 'Detalle de producto (permiso products.view).',
+            'data' => [
+                'id' => $product,
+                'name' => 'Laptop',
+            ],
+        ]);
+    }
+
+    public function update(int $product): JsonResponse
+    {
+        return response()->json([
+            'message' => 'Producto actualizado (permiso products.create).',
+            'data' => [
+                'id' => $product,
+                'name' => 'Laptop Pro',
+            ],
+        ]);
+    }
+
+    public function destroy(int $product): JsonResponse
+    {
+        return response()->json([
+            'message' => "Producto {$product} eliminado (permiso products.delete).",
+        ]);
+    }
+
+    public function export(): JsonResponse
+    {
+        return response()->json([
+            'message' => 'ExportaciÃ³n de productos (permiso products.view).',
+            'data' => ['csv' => 'products.csv'],
+        ]);
+    }
+}
+
+========== C:\Users\APRENDIZ.DESKTOP-16JF3VT\Documents\Educapp_Proyecto\app\Http\Controllers\Concerns\AuthorizesWithPermissions.php ==========
+<?php
+
+namespace App\Http\Controllers\Concerns;
+
+use Illuminate\Routing\Controllers\Middleware;
+
+trait AuthorizesWithPermissions
+{
+
+    abstract public static function permissions(): array;
+
+    public static function middleware(): array
+    {
+        $grouped = [];
+
+        foreach (static::permissions() as $method => $permission) {
+            $grouped[$permission][] = $method;
+        }
+
+        return collect($grouped)
+            ->map(fn (array $methods, string $permission) => new Middleware(
+                "permission:{$permission}",
+                only: $methods,
+            ))
+            ->values()
+            ->all();
+    }
+}
+
+========== C:\Users\APRENDIZ.DESKTOP-16JF3VT\Documents\Educapp_Proyecto\app\Http\Middleware\CheckPermission.php ==========
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+class CheckPermission
+{
+    public function handle(Request $request, Closure $next, string $permission): Response
+    {
+        $user = $request->user();
+
+        if (! $user || ! $user->hasPermission($permission)) {
+            return response()->json([
+                'message' => 'No tienes permiso para esta acciÃ³n.',
+            ], 403);
+        }
+
+        return $next($request);
+    }
+}
+
+========== C:\Users\APRENDIZ.DESKTOP-16JF3VT\Documents\Educapp_Proyecto\app\Http\Requests\RolRequest.php ==========
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class RolRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    public function rules(): array
+    {
+        return [
+            'Tipo' => 'required|string|max:100|in:RECTOR,ASISTENTE ADMINISTRATIVO,ESTUDIANTE,ACUDIENTE,DOCENTE',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'Tipo.required' => 'El tipo de rol es obligatorio.',
+            'Tipo.string' => 'El tipo de rol debe ser un texto.',
+            'Tipo.max' => 'El tipo de rol no puede superar los 100 caracteres.',
+            'Tipo.in' => 'El tipo de rol seleccionado no es vÃ¡lido.'
+        ];
+    }
+}
+
+========== C:\Users\APRENDIZ.DESKTOP-16JF3VT\Documents\Educapp_Proyecto\app\Http\Requests\UsuarioRequest.php ==========
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+
+class UsuarioRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    public function rules(): array
+    {
+        $obligatorio = $this->isMethod('post')
+            ? 'required'
+            : 'sometimes';
+
+        return [
+            'Nombres' => [
+                $obligatorio,
+                'string',
+                'max:150'
+            ],
+
+            'Apellidos' => [
+                $obligatorio,
+                'string',
+                'max:150'
+            ],
+
+            'Tipo_Documento' => [
+                $obligatorio,
+                'string',
+                'max:100'
+            ],
+
+            'Numero_Documento' => [
+                $obligatorio,
+                'integer',
+                'min:1',
+                'max:2147483647'
+            ],
+
+            'Fecha_Nacimiento' => [
+                'nullable',
+                'date',
+                'before_or_equal:today'
+            ],
+
+            'Genero' => [
+                'nullable',
+                'string',
+                'in:Masculino,Femenino'
+            ],
+
+            'Correo_Electronico' => [
+                'nullable',
+                'email',
+                'max:150',
+                Rule::unique(
+                    'usuarios',
+                    'Correo_Electronico'
+                )->ignore(
+                    $this->route('usuario') ?? $this->route('id'),
+                    'Id_usuario'
+                )
+            ],
+
+            'Numero_Telefonico' => [
+                'nullable',
+                'string',
+                'regex:/^[0-9]{7,20}$/'
+            ],
+
+            'Id_Rol' => [
+                $obligatorio,
+                'integer',
+                'exists:rol,Id_Rol'
+            ],
+
+            'Id_EPS' => [
+                'nullable',
+                'integer',
+                'exists:eps,Id_EPS'
+            ],
+
+            'Id_Grupo_Sanguineo' => [
+                'nullable',
+                'integer',
+                'exists:grupo_sanguineo,Id_GRUPO_SANGUINEO'
+            ],
+
+            'Id_Barrio' => [
+                'nullable',
+                'integer',
+                'exists:barrio,Id_Barrio'
+            ]
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'Nombres.required' =>
+                'Los nombres son obligatorios.',
+
+            'Nombres.string' =>
+                'Los nombres deben ser un texto.',
+
+            'Nombres.max' =>
+                'Los nombres no pueden superar los 150 caracteres.',
+
+            'Apellidos.required' =>
+                'Los apellidos son obligatorios.',
+
+            'Apellidos.string' =>
+                'Los apellidos deben ser un texto.',
+
+            'Apellidos.max' =>
+                'Los apellidos no pueden superar los 150 caracteres.',
+
+            'Tipo_Documento.required' =>
+                'El tipo de documento es obligatorio.',
+
+            'Tipo_Documento.string' =>
+                'El tipo de documento debe ser un texto.',
+
+            'Tipo_Documento.max' =>
+                'El tipo de documento no puede superar los 100 caracteres.',
+
+            'Numero_Documento.required' =>
+                'El nÃºmero de documento es obligatorio.',
+
+            'Numero_Documento.integer' =>
+                'El nÃºmero de documento debe ser un nÃºmero entero.',
+
+            'Numero_Documento.min' =>
+                'El nÃºmero de documento debe ser mayor que cero.',
+
+            'Numero_Documento.max' =>
+                'El nÃºmero de documento supera el lÃ­mite permitido.',
+
+            'Fecha_Nacimiento.date' =>
+                'La fecha de nacimiento no es vÃ¡lida.',
+
+            'Fecha_Nacimiento.before_or_equal' =>
+                'La fecha de nacimiento no puede ser futura.',
+
+            'Genero.in' =>
+                'El gÃ©nero seleccionado no es vÃ¡lido.',
+
+            'Correo_Electronico.email' =>
+                'El correo electrÃ³nico no tiene un formato vÃ¡lido.',
+
+            'Correo_Electronico.max' =>
+                'El correo no puede superar los 150 caracteres.',
+
+            'Correo_Electronico.unique' =>
+                'Este correo electrÃ³nico ya estÃ¡ registrado.',
+
+            'Numero_Telefonico.string' =>
+                'El nÃºmero telefÃ³nico debe ser un texto.',
+
+            'Numero_Telefonico.regex' =>
+                'El nÃºmero telefÃ³nico debe contener entre 7 y 20 dÃ­gitos numÃ©ricos.',
+
+            'Id_Rol.required' =>
+                'El rol es obligatorio.',
+
+            'Id_Rol.exists' =>
+                'El rol seleccionado no existe.',
+
+            'Id_EPS.exists' =>
+                'La EPS seleccionada no existe.',
+
+            'Id_Grupo_Sanguineo.exists' =>
+                'El grupo sanguÃ­neo seleccionado no existe.',
+
+            'Id_Barrio.exists' =>
+                'El barrio seleccionado no existe.'
+        ];
+    }
+}
+
+========== C:\Users\APRENDIZ.DESKTOP-16JF3VT\Documents\Educapp_Proyecto\app\Interfaces\RolInterface.php ==========
+<?php
+
+namespace App\Interfaces;
+
+use App\Models\Rol;
+use Illuminate\Database\Eloquent\Collection;
+
+interface RolInterface
+{
+    public function getAll(): Collection;
+
+    public function findById(int $id): ?Rol;
+
+    public function create(array $data): Rol;
+
+    public function update(int $id, array $data): ?Rol;
+
+    public function delete(int $id): bool;
+
+    public function existsByTipo(
+        string $tipo,
+        ?int $excludeId = null
+    ): bool;
+
+    public function hasUsuarios(int $id): bool;
+}
+
+========== C:\Users\APRENDIZ.DESKTOP-16JF3VT\Documents\Educapp_Proyecto\app\Interfaces\UsuarioInterface.php ==========
+<?php
+
+namespace App\Interfaces;
+
+use App\Models\Usuario;
+use Illuminate\Database\Eloquent\Collection;
+
+interface UsuarioInterface
+{
+    public function getAll(): Collection;
+
+    public function findById(int $id): ?Usuario;
+
+    public function create(array $data): Usuario;
+
+    public function update(
+        int $id,
+        array $data
+    ): ?Usuario;
+
+    public function delete(int $id): bool;
+
+    public function existsByDocumento(
+        string $tipoDocumento,
+        string $numeroDocumento,
+        ?int $excludeId = null
+    ): bool;
+
+    public function existsByCorreo(
+        string $correo,
+        ?int $excludeId = null
+    ): bool;
+}
+
+========== C:\Users\APRENDIZ.DESKTOP-16JF3VT\Documents\Educapp_Proyecto\app\Models\Rol.php ==========
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+class Rol extends Model
+{
+    protected $table = 'rol';
+
+    protected $primaryKey = 'Id_Rol';
+
+    public $incrementing = true;
+
+    protected $keyType = 'int';
+
+    public $timestamps = false;
+
+    protected $fillable = [
+        'Tipo'
+    ];
+
+    public function usuarios(): HasMany
+    {
+        return $this->hasMany(
+            Usuario::class,
+            'Id_Rol',
+            'Id_Rol'
+        );
+    }
+
+    public function permissions(): array
+    {
+        return config('rol.' .$this->Nombres, []); 
+    }
+}
+
+========== C:\Users\APRENDIZ.DESKTOP-16JF3VT\Documents\Educapp_Proyecto\app\Models\Usuario.php ==========
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
+
+class User extends Authenticatable implements JWTSubject
+
+{
+    protected $table = 'usuarios';
+
+    protected $primaryKey = 'Id_usuario';
+
+    public $incrementing = true;
+
+    protected $keyType = 'int';
+
+    public $timestamps = false;
+
+    protected $fillable = [
+        'Nombres',
+        'Apellidos',
+        'Tipo_Documento',
+        'Numero_Documento',
+        'Fecha_Nacimiento',
+        'Genero',
+        'Numero_Telefono',
+        'Correo',
+        'contraseÃ±a',
+        'Id_Rol',
+        'Id_EPS',
+        'Id_Grupo_Sanguineo',
+        'Id_Barrio'
+    ];
+
+    protected $hidden = [
+        'contraseÃ±a',
+        'remeber_token'
+
+    ];
+
+
+
+    protected function casts (): array 
+    {
+        return [
+            'contraseÃ±a ' => 'hashed',
+            'Fecha_Nacimiento' => 'date:Y-m-d',
+            
+        ];
+    }
+    
+    public function getRolNombres(): ?string 
+    {
+        return $this->rol?->nombres;
+    }
+
+
+    public function rol(): BelongsTo
+    {
+        return $this->belongsTo(
+            Rol::class,
+            'Id_Rol',
+            'Id_Rol'
+        );
+    }
+
+    public function eps(): BelongsTo
+    {
+        return $this->belongsTo(
+            EPS::class,
+            'Id_EPS',
+            'Id_EPS'
+        );
+    }
+
+    public function grupoSanguineo(): BelongsTo
+    {
+        return $this->belongsTo(
+            GrupoSanguineo::class,
+            'Id_Grupo_Sanguineo',
+            'Id_GRUPO_SANGUINEO'
+        );
+    }
+
+    public function barrio(): BelongsTo
+    {
+        return $this->belongsTo(
+            Barrio::class,
+            'Id_Barrio',
+            'Id_Barrio'
+        );
+    }
+
+    public function getJWTIdentifier (): mixed
+    {
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims(): array
+    {
+        return[
+            'rol' => $this->getRolNombres(), 
+        ];
+    }
+
+
+    
+}
+
+========== C:\Users\APRENDIZ.DESKTOP-16JF3VT\Documents\Educapp_Proyecto\app\Repositories\RolRepository.php ==========
+<?php
+
+namespace App\Repositories;
+
+use App\Interfaces\RolInterface;
+use App\Models\Rol;
+use Illuminate\Database\Eloquent\Collection;
+
+class RolRepository implements RolInterface
+{
+    public function getAll(): Collection
+    {
+        return Rol::all();
+    }
+
+    public function findById(int $id): ?Rol
+    {
+        return Rol::find($id);
+    }
+
+    public function create(array $data): Rol
+    {
+        return Rol::create($data);
+    }
+
+    public function update(int $id, array $data): ?Rol
+    {
+        $rol = Rol::find($id);
+
+        if (!$rol) {
+            return null;
+        }
+
+        $rol->update($data);
+
+        return $rol->refresh();
+    }
+
+    public function delete(int $id): bool
+    {
+        $rol = Rol::find($id);
+
+        if (!$rol) {
+            return false;
+        }
+
+        return (bool) $rol->delete();
+    }
+
+    public function existsByTipo(
+        string $tipo,
+        ?int $excludeId = null
+    ): bool {
+        return Rol::where('Tipo', $tipo)
+            ->when($excludeId !== null, function ($query) use ($excludeId) {
+                $query->where('Id_Rol', '!=', $excludeId);
+            })
+            ->exists();
+    }
+
+    public function hasUsuarios(int $id): bool
+    {
+        return Rol::whereKey($id)
+            ->whereHas('usuarios')
+            ->exists();
+    }
+}
+
+========== C:\Users\APRENDIZ.DESKTOP-16JF3VT\Documents\Educapp_Proyecto\app\Repositories\UsuarioRepository.php ==========
+<?php
+
+namespace App\Repositories;
+
+use App\Interfaces\UsuarioInterface;
+use App\Models\Usuario;
+use Illuminate\Database\Eloquent\Collection;
+
+class UsuarioRepository implements UsuarioInterface
+{
+    public function getAll(): Collection
+    {
+        return Usuario::with([
+            'rol',
+            'eps',
+            'grupoSanguineo',
+            'barrio'
+        ])->get();
+    }
+
+    public function findById(int $id): ?Usuario
+    {
+        return Usuario::with([
+            'rol',
+            'eps',
+            'grupoSanguineo',
+            'barrio'
+        ])->find($id);
+    }
+
+    public function create(array $data): Usuario
+    {
+        $usuario = Usuario::create($data);
+
+        return $usuario->load([
+            'rol',
+            'eps',
+            'grupoSanguineo',
+            'barrio'
+        ]);
+    }
+
+    public function update(
+        int $id,
+        array $data
+    ): ?Usuario {
+        $usuario = Usuario::find($id);
+
+        if (!$usuario) {
+            return null;
+        }
+
+        $usuario->update($data);
+
+        return $usuario->refresh()->load([
+            'rol',
+            'eps',
+            'grupoSanguineo',
+            'barrio'
+        ]);
+    }
+
+    public function delete(int $id): bool
+    {
+        $usuario = Usuario::find($id);
+
+        if (!$usuario) {
+            return false;
+        }
+
+        return (bool) $usuario->delete();
+    }
+
+    public function existsByDocumento(
+        string $tipoDocumento,
+        string $numeroDocumento,
+        ?int $excludeId = null
+    ): bool {
+        return Usuario::where(
+            'Tipo_Documento',
+            $tipoDocumento
+        )
+            ->where(
+                'Numero_Documento',
+                $numeroDocumento
+            )
+            ->when(
+                $excludeId !== null,
+                function ($query) use ($excludeId) {
+                    $query->where(
+                        'Id_usuario',
+                        '!=',
+                        $excludeId
+                    );
+                }
+            )
+            ->exists();
+    }
+
+    public function existsByCorreo(
+        string $correo,
+        ?int $excludeId = null
+    ): bool {
+        return Usuario::where(
+            'Correo_Electronico',
+            $correo
+        )
+            ->when(
+                $excludeId !== null,
+                function ($query) use ($excludeId) {
+                    $query->where(
+                        'Id_usuario',
+                        '!=',
+                        $excludeId
+                    );
+                }
+            )
+            ->exists();
+    }
+}
+
+========== C:\Users\APRENDIZ.DESKTOP-16JF3VT\Documents\Educapp_Proyecto\app\Services\RolService.php ==========
+<?php
+
+namespace App\Services;
+
+use App\Interfaces\RolInterface;
+use App\Models\Rol;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
+
+class RolService
+{
+    protected RolInterface $rolRepository;
+
+    public function __construct(RolInterface $rolRepository)
+    {
+        $this->rolRepository = $rolRepository;
+    }
+
+    public function getAll(): Collection
+    {
+        return $this->rolRepository->getAll();
+    }
+
+    public function findById(int $id): ?Rol
+    {
+        return $this->rolRepository->findById($id);
+    }
+
+    public function create(array $data): Rol
+    {
+        if ($this->rolRepository->existsByTipo($data['Tipo'])) {
+            throw ValidationException::withMessages([
+                'Tipo' => [
+                    'Este tipo de rol ya se encuentra registrado.'
+                ]
+            ]);
+        }
+
+        return $this->rolRepository->create($data);
+    }
+
+    public function update(int $id, array $data): ?Rol
+    {
+        $rol = $this->rolRepository->findById($id);
+
+        if (!$rol) {
+            return null;
+        }
+
+        if (
+            isset($data['Tipo']) &&
+            $this->rolRepository->existsByTipo(
+                $data['Tipo'],
+                $id
+            )
+        ) {
+            throw ValidationException::withMessages([
+                'Tipo' => [
+                    'Ya existe otro rol con este tipo.'
+                ]
+            ]);
+        }
+
+        return $this->rolRepository->update($id, $data);
+    }
+
+    public function delete(int $id): bool
+    {
+        $rol = $this->rolRepository->findById($id);
+
+        if (!$rol) {
+            return false;
+        }
+
+        if ($this->rolRepository->hasUsuarios($id)) {
+            throw new ConflictHttpException(
+                'No se puede eliminar el rol porque tiene usuarios asociados.'
+            );
+        }
+
+        return $this->rolRepository->delete($id);
+    }
+}
+
+========== C:\Users\APRENDIZ.DESKTOP-16JF3VT\Documents\Educapp_Proyecto\app\Services\UsuarioService.php ==========
+<?php
+
+namespace App\Services;
+
+use App\Interfaces\UsuarioInterface;
+use App\Models\Usuario;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\QueryException;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
+
+class UsuarioService
+{
+    protected UsuarioInterface $usuarioRepository;
+
+    public function __construct(
+        UsuarioInterface $usuarioRepository
+    ) {
+        $this->usuarioRepository = $usuarioRepository;
+    }
+
+    public function getAll(): Collection
+    {
+        return $this->usuarioRepository->getAll();
+    }
+
+    public function findById(int $id): ?Usuario
+    {
+        return $this->usuarioRepository->findById($id);
+    }
+
+    public function create(array $data): Usuario
+    {
+        $data = $this->normalizarDatos($data);
+
+        $this->validarDocumento(
+            $data['Tipo_Documento'],
+            (string) $data['Numero_Documento']
+        );
+
+        if (!empty($data['Correo_Electronico'])) {
+            $this->validarCorreo(
+                $data['Correo_Electronico']
+            );
+        }
+
+        return $this->usuarioRepository->create($data);
+    }
+
+    public function update(
+        int $id,
+        array $data
+    ): ?Usuario {
+        $usuario = $this->usuarioRepository->findById($id);
+
+        if (!$usuario) {
+            return null;
+        }
+
+        $data = $this->normalizarDatos($data);
+
+        $tipoDocumento = $data['Tipo_Documento']
+            ?? $usuario->Tipo_Documento;
+
+        $numeroDocumento = $data['Numero_Documento']
+            ?? $usuario->Numero_Documento;
+
+        $this->validarDocumento(
+            $tipoDocumento,
+            (string) $numeroDocumento,
+            $id
+        );
+
+        if (!empty($data['Correo_Electronico'])) {
+            $this->validarCorreo(
+                $data['Correo_Electronico'],
+                $id
+            );
+        }
+
+        return $this->usuarioRepository->update(
+            $id,
+            $data
+        );
+    }
+
+    public function delete(int $id): bool
+    {
+        $usuario = $this->usuarioRepository->findById($id);
+
+        if (!$usuario) {
+            return false;
+        }
+
+        try {
+            return $this->usuarioRepository->delete($id);
+        } catch (QueryException $exception) {
+            if (
+                $exception->getCode() === '23000' &&
+                (int) ($exception->errorInfo[1] ?? 0) === 1451
+            ) {
+                throw new ConflictHttpException(
+                    'No se puede eliminar el usuario porque tiene registros asociados.'
+                );
+            }
+
+            throw $exception;
+        }
+    }
+
+    private function normalizarDatos(array $data): array
+    {
+        foreach (
+            ['Nombres', 'Apellidos', 'Tipo_Documento']
+            as $campo
+        ) {
+            if (isset($data[$campo])) {
+                $data[$campo] = trim($data[$campo]);
+
+                if ($data[$campo] === '') {
+                    throw ValidationException::withMessages([
+                        $campo => [
+                            'Este campo no puede estar vacÃ­o.'
+                        ]
+                    ]);
+                }
+            }
+        }
+
+        if (isset($data['Correo_Electronico'])) {
+            $data['Correo_Electronico'] = mb_strtolower(
+                trim($data['Correo_Electronico'])
+            );
+        }
+
+        if (isset($data['Numero_Telefonico'])) {
+            $data['Numero_Telefonico'] = trim(
+                $data['Numero_Telefonico']
+            );
+        }
+
+        return $data;
+    }
+
+    private function validarDocumento(
+        string $tipoDocumento,
+        string $numeroDocumento,
+        ?int $excludeId = null
+    ): void {
+        if (
+            $this->usuarioRepository->existsByDocumento(
+                $tipoDocumento,
+                $numeroDocumento,
+                $excludeId
+            )
+        ) {
+            throw ValidationException::withMessages([
+                'Numero_Documento' => [
+                    'Ya existe un usuario registrado con este tipo y nÃºmero de documento.'
+                ]
+            ]);
+        }
+    }
+
+    private function validarCorreo(
+        string $correo,
+        ?int $excludeId = null
+    ): void {
+        if (
+            $this->usuarioRepository->existsByCorreo(
+                $correo,
+                $excludeId
+            )
+        ) {
+            throw ValidationException::withMessages([
+                'Correo_Electronico' => [
+                    'Este correo electrÃ³nico ya se encuentra registrado.'
+                ]
+            ]);
+        }
+    }
+}
+
+========== C:\Users\APRENDIZ.DESKTOP-16JF3VT\Documents\Educapp_Proyecto\database\migrations\01_roles_table.php ==========
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('rol', function (Blueprint $table) {
+    $table->increments('Id_Rol');
+
+    $table->enum('Tipo', [
+        'RECTOR',
+        'ASISTENTE ADMINISTRATIVO',
+        'ESTUDIANTE',
+        'ACUDIENTE',
+        'DOCENTE'
+    ])->nullable();
+    });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('rol');
+    }
+};
+
+========== C:\Users\APRENDIZ.DESKTOP-16JF3VT\Documents\Educapp_Proyecto\database\migrations\11_usuarios_table.php ==========
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('usuarios', function (Blueprint $table) {
+            $table->increments('Id_usuario');
+
+            $table->string('Nombres', 150)->nullable();
+
+            $table->string('Apellidos', 150)->nullable();
+
+            $table->string('Tipo_Documento', 100)->nullable();
+
+            $table->integer('Numero_Documento')->nullable();
+
+            $table->date('Fecha_Nacimiento')->nullable();
+
+            $table->enum('Genero', ['Masculino', 'Femenino'])->nullable();
+
+            $table->integer('Numero_Telefono')->nullable();
+
+            $table->string('Correo', 150)->nullable();
+
+            // Claves forÃ¡neas
+            $table->unsignedInteger('Id_Rol')->nullable();
+
+            $table->unsignedInteger('Id_EPS')->nullable();
+
+            $table->unsignedInteger('Id_Grupo_Sanguineo')->nullable();
+
+            $table->unsignedInteger('Id_Barrio')->nullable();
+
+            // Relaciones
+            $table->foreign('Id_Rol')
+                ->references('Id_Rol')
+                ->on('rol');
+
+            $table->foreign('Id_EPS')
+                ->references('Id_EPS')
+                ->on('eps');
+
+            $table->foreign('Id_Grupo_Sanguineo')
+                ->references('Id_GRUPO_SANGUINEO')
+                ->on('grupo_sanguineo');
+
+            $table->foreign('Id_Barrio')
+                ->references('Id_Barrio')
+                ->on('barrio');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('usuarios');
+    }
+};
+
+========== C:\Users\APRENDIZ.DESKTOP-16JF3VT\Documents\Educapp_Proyecto\database\seeders\RolSeeder.php ==========
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+
+class RolSeeder extends Seeder
+{
+    public function run(): void
+    {
+        $roles = [
+            'RECTOR',
+            'ASISTENTE ADMINISTRATIVO',
+            'ESTUDIANTE',
+            'ACUDIENTE',
+            'DOCENTE'
+        ];
+
+        foreach ($roles as $rol) {
+            DB::table('rol')->updateOrInsert(
+                ['Tipo' => $rol],
+                ['Tipo' => $rol]
+            );
+        }
+    }
+}

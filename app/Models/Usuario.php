@@ -2,13 +2,11 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class User extends Authenticatable implements JWTSubject
-
+class Usuario extends Authenticatable implements JWTSubject
 {
     protected $table = 'usuarios';
 
@@ -38,26 +36,45 @@ class User extends Authenticatable implements JWTSubject
 
     protected $hidden = [
         'contraseña',
-        'remeber_token'
-
+        'remember_token'
     ];
 
-
-
-    protected function casts (): array 
+    protected function casts(): array
     {
         return [
-            'contraseña ' => 'hashed',
+            'contraseña' => 'hashed',
             'Fecha_Nacimiento' => 'date:Y-m-d',
-            
         ];
     }
-    
-    public function getRolNombres(): ?string 
+
+    // AUTENTICACIÓN
+
+    public function getAuthPasswordName(): string
     {
-        return $this->rol?->nombres;
+        return 'contraseña';
     }
 
+    // ROLES Y PERMISOS
+
+    public function getRolNombres(): ?string
+    {
+        return $this->rol?->Tipo;
+    }
+
+    public function hasPermission(string $permission): bool
+    {
+        $rol = $this->getRolNombres();
+
+        if (!$rol) {
+            return false;
+        }
+
+        $permisos = config("rol.{$rol}", []);
+
+        return in_array($permission, $permisos, true);
+    }
+
+    // RELACIONES
 
     public function rol(): BelongsTo
     {
@@ -95,18 +112,17 @@ class User extends Authenticatable implements JWTSubject
         );
     }
 
-    public function getJWTIdentifier (): mixed
+    // JWT
+
+    public function getJWTIdentifier(): mixed
     {
         return $this->getKey();
     }
 
     public function getJWTCustomClaims(): array
     {
-        return[
-            'rol' => $this->getRolNombres(), 
+        return [
+            'rol' => $this->getRolNombres(),
         ];
     }
-
-
-    
 }
