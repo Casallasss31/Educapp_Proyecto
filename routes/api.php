@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\DetalleBoletinController;
 use App\Http\Controllers\RolController;
@@ -27,53 +28,105 @@ use App\Http\Controllers\MatriculaController;
 use App\Http\Controllers\HorarioAcademicoController;
 
 Route::prefix('v1')->name('api.v1.')->group(function () {
-    // Usuarios y roles
+
+    // AUTENTICACION JWT
+
+    Route::post('login', [AuthController::class, 'login'])
+        ->middleware('throttle:10,1')
+        ->name('login');
+
+    Route::middleware('auth:api')->group(function () {
+
+        Route::get('me', [AuthController::class, 'me'])
+            ->name('me');
+
+        Route::post('logout', [AuthController::class, 'logout'])
+            ->name('logout');
+
+        // Prueba del middleware de permisos
+
+        Route::get('prueba-permiso', function () {
+            return response()->json([
+                'mensaje' => 'Permiso autorizado correctamente',
+                'permiso' => 'estudiante.view'
+            ]);
+        })->middleware('permission:estudiante.view')
+          ->name('prueba-permiso');
+
+    });
+
+    // USUARIOS Y ROLES
+
     Route::apiResource('usuarios', UsuarioController::class);
     Route::apiResource('roles', RolController::class);
 
-    // Información general
+    // INFORMACION GENERAL
+
     Route::apiResource('eps', EPSController::class);
     Route::apiResource('grupos-sanguineos', GrupoSanguineoController::class);
     Route::apiResource('localidades', LocalidadController::class);
     Route::apiResource('barrios', BarrioController::class);
     Route::apiResource('profesiones', ProfesionController::class);
 
-    // Personal institucional
+    // PERSONAL INSTITUCIONAL
+
     Route::apiResource('docentes', DocenteController::class);
     Route::apiResource('rectores', RectorController::class);
     Route::apiResource('asistentes-administrativos', AsistenteAdministrativoController::class);
 
-    // Comunidad educativa
+    // COMUNIDAD EDUCATIVA
+
     Route::apiResource('acudientes', AcudienteController::class);
     Route::apiResource('estudiantes', EstudianteController::class);
 
-    // Información académica
+    // INFORMACION ACADEMICA
+
     Route::apiResource('grados', GradoController::class);
     Route::apiResource('cursos', CursoController::class);
     Route::apiResource('areas', AreaController::class);
     Route::apiResource('notas', NotaController::class);
     Route::apiResource('materias', MateriaController::class);
 
-    // Consultas personalizadas antes de los recursos dinámicos
+    // BOLETINES
+
     Route::get('boletines/estudiante/{idEstudiante}', [BoletinController::class, 'porEstudiante'])
-        ->whereNumber('idEstudiante')->name('boletines.por-estudiante');
+        ->whereNumber('idEstudiante')
+        ->name('boletines.por-estudiante');
+
     Route::apiResource('boletines', BoletinController::class);
 
+    // DETALLES DE BOLETIN
+
     Route::get('detalles-boletin/boletin/{idBoletin}', [DetalleBoletinController::class, 'porBoletin'])
-        ->whereNumber('idBoletin')->name('detalles-boletin.por-boletin');
+        ->whereNumber('idBoletin')
+        ->name('detalles-boletin.por-boletin');
+
     Route::apiResource('detalles-boletin', DetalleBoletinController::class);
+
+    // CERTIFICADOS
 
     Route::apiResource('tipos-certificado', TipoCertificadoController::class);
 
     Route::get('certificados/estudiante/{idEstudiante}', [CertificadoController::class, 'porEstudiante'])
-        ->whereNumber('idEstudiante')->name('certificados.por-estudiante');
+        ->whereNumber('idEstudiante')
+        ->name('certificados.por-estudiante');
+
     Route::apiResource('certificados', CertificadoController::class);
 
+    // MATRICULAS
+
     Route::get('matriculas/estudiante/{idEstudiante}', [MatriculaController::class, 'porEstudiante'])
-        ->whereNumber('idEstudiante')->name('matriculas.por-estudiante');
+        ->whereNumber('idEstudiante')
+        ->name('matriculas.por-estudiante');
+
     Route::apiResource('matriculas', MatriculaController::class);
 
+    // HORARIOS ACADEMICOS
+
     Route::get('horarios-academicos/curso/{idCurso}', [HorarioAcademicoController::class, 'porCurso'])
-        ->whereNumber('idCurso')->name('horarios-academicos.por-curso');
+        ->whereNumber('idCurso')
+        ->name('horarios-academicos.por-curso');
+
     Route::apiResource('horarios-academicos', HorarioAcademicoController::class);
+
 });

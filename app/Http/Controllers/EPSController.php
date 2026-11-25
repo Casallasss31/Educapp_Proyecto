@@ -10,7 +10,6 @@ use Illuminate\Routing\Controllers\HasMiddleware;
 
 class EPSController extends Controller implements HasMiddleware
 {
-
     use AuthorizesWithPermissions;
 
     protected EPSService $epsService;
@@ -19,6 +18,21 @@ class EPSController extends Controller implements HasMiddleware
     {
         $this->epsService = $epsService;
     }
+
+    // PERMISOS
+
+    public static function permissions(): array
+    {
+        return [
+            'index'   => 'eps.view',
+            'show'    => 'eps.view',
+            'store'   => 'eps.create',
+            'update'  => 'eps.update',
+            'destroy' => 'eps.delete',
+        ];
+    }
+
+    // CONSULTAR TODAS LAS EPS
 
     public function index(): JsonResponse
     {
@@ -29,6 +43,8 @@ class EPSController extends Controller implements HasMiddleware
             'datos' => $eps
         ], 200);
     }
+
+    // CONSULTAR EPS POR ID
 
     public function show(int $id): JsonResponse
     {
@@ -46,6 +62,8 @@ class EPSController extends Controller implements HasMiddleware
         ], 200);
     }
 
+    // CREAR EPS
+
     public function store(EPSRequest $request): JsonResponse
     {
         $eps = $this->epsService->create(
@@ -57,6 +75,8 @@ class EPSController extends Controller implements HasMiddleware
             'datos' => $eps
         ], 201);
     }
+
+    // ACTUALIZAR EPS
 
     public function update(EPSRequest $request, int $id): JsonResponse
     {
@@ -76,6 +96,8 @@ class EPSController extends Controller implements HasMiddleware
             'datos' => $eps
         ], 200);
     }
+
+    // ELIMINAR EPS
 
     public function destroy(int $id): JsonResponse
     {
