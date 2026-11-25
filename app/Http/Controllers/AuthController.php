@@ -28,7 +28,7 @@ class AuthController extends Controller
 
      public function me(): JsonResponse
     {
-        $user = auth('api')->user()->load('role');
+        $user = auth('api')->user()->load('rol');
 
         if(!$user)
          {
@@ -39,7 +39,7 @@ class AuthController extends Controller
 
         return response()->json([
             'user' => $user,
-            'role' => $user->getRoleName(),
+            'role' => $user->getRolNombres(),
             'permissions' => $user->getPermissions()
         ],200);
     }
@@ -55,49 +55,17 @@ class AuthController extends Controller
 
     public function refresh(): JsonResponse
     {
-        return $this->respondWithToken(auth('api')->refresh());
+    return $this->respondWithToken(auth('api')->refresh());
     }
 
+    protected function respondWithToken(string $token): JsonResponse
+    {
+    return response()->json([
+        'mensaje' => 'Token renovado correctamente.',
+        'access_token' => $token,
+        'token_type' => 'bearer',
+        'expires_in' => auth('api')->factory()->getTTL() * 60
+    ], 200);
+    }
 
 }
-
-
-
-// public function login(LoginRequest $request): JsonResponse
-// {
-//     $credentials = $request->validated();
-
-//     if (!$token = auth('api')->attempt($credentials)) {
-//         return response()->json([
-//             'mensaje' => 'Credenciales incorrectas'
-//         ], 401);
-//     }
-
-//     return response()->json([
-//         'mensaje' => 'Inicio de sesión exitoso',
-//         'access_token' => $token,
-//         'token_type' => 'bearer',
-//         'expires_in' => auth('api')->factory()->getTTL() * 60,
-//     ], 200);
-// }
-
-// public function login(Request $request)
-//     {
-//         $credentials = $request->validate([
-//             'Correo' => 'required|email',
-//             'password' => 'required|string',
-//         ]);
-
-//         if (!$token = auth('api')->attempt($credentials)) {
-//             return response()->json([
-//                 'mensaje' => 'Credenciales incorrectas'
-//             ], 403);
-//         }
-
-//         return response()->json([
-//             'mensaje' => 'Inicio de sesión exitoso',
-//             'access_token' => $token,
-//             'token_type' => 'bearer',
-//             'expires_in' => auth('api')->factory()->getTTL() * 60,
-//         ], 200);
-//     }
